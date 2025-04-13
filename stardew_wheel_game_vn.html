@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vòng Quay May Mắn - English Comments</title> <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            justify-content: flex-start; /* Align top */
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0e8c0;
+            font-family: 'Press Start 2P', cursive;
+            color: #5a3a24;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Main game area layout */
+        .main-game {
+             display: flex;
+             flex-direction: column;
+             align-items: center;
+             margin-bottom: 20px; /* Space before history */
+        }
+
+        .game-container {
+            position: relative;
+            width: 300px; /* Slightly smaller wheel */
+            height: 300px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .pointer {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #c0392b;
+            z-index: 10;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        button {
+            font-family: 'Press Start 2P', cursive;
+            padding: 15px 25px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: #8b5a2b;
+            color: #f0e8c0;
+            border: 4px solid #5a3a24;
+            border-radius: 10px;
+            text-transform: uppercase;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 5px #5a3a24;
+        }
+        #resetButton {
+             background-color: #c0392b;
+             box-shadow: 0 5px #a03021;
+             border-color: #a03021;
+        }
+         #resetButton:hover {
+             background-color: #d65040;
+         }
+          #resetButton:active {
+             background-color: #a03021;
+             box-shadow: 0 2px #7c251a;
+             transform: translateY(3px);
+         }
+
+        button:hover {
+            background-color: #a07b4e;
+        }
+        button:active {
+            background-color: #7c4d21;
+            box-shadow: 0 2px #5a3a24;
+            transform: translateY(3px);
+        }
+        button:disabled {
+            background-color: #cccccc;
+            color: #666666;
+            cursor: not-allowed;
+            box-shadow: 0 5px #999999;
+            border-color: #999999;
+        }
+
+        #result {
+            margin-top: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            min-height: 20px;
+            color: #e74c3c;
+        }
+
+        .controls, .betting-controls {
+            margin-top: 15px;
+            padding: 12px;
+            background-color: rgba(139, 90, 43, 0.1);
+            border: 3px solid #8b5a2b;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+        }
+        .controls label, .betting-controls label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        .controls input[type="range"] {
+            width: 75%;
+            cursor: pointer;
+            margin-bottom: 5px;
+            vertical-align: middle;
+        }
+        .controls span {
+            font-size: 12px;
+            font-weight: bold;
+            color: #c0392b;
+            min-width: 35px;
+            display: inline-block;
+            text-align: right;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+         .balance-info {
+             font-size: 14px;
+             margin-bottom: 10px;
+             color: #34495e;
+         }
+         .balance-info span {
+             font-weight: bold;
+             color: #27ae60;
+         }
+         .betting-controls input[type="number"] {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            padding: 8px;
+            border: 2px solid #8b5a2b;
+            border-radius: 5px;
+            background-color: #fffbf0;
+            color: #5a3a24;
+            width: 100px;
+            text-align: right;
+            margin-left: 10px;
+         }
+         .betting-controls input[type=number]::-webkit-inner-spin-button,
+         .betting-controls input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none; margin: 0;
+         }
+         .betting-controls input[type=number] {
+            -moz-appearance: textfield;
+         }
+
+        /* History Log Styling */
+        .history-section {
+            margin-top: 25px;
+            width: 90%;
+            max-width: 450px; /* Limit width */
+            background-color: rgba(139, 90, 43, 0.05); /* Lighter background */
+            border: 3px solid #8b5a2b;
+            border-radius: 8px;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        .history-section h2 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #5a3a24;
+            border-bottom: 2px solid #8b5a2b;
+            padding-bottom: 5px;
+        }
+        #historyLog {
+            list-style: none; padding: 0; margin: 0;
+            max-height: 150px; overflow-y: auto; /* Add scrollbar when needed */
+            text-align: left; /* Align history text left */
+            font-size: 11px; /* Smaller font for history */
+            line-height: 1.6; /* Increase line spacing */
+        }
+        #historyLog li {
+            padding: 5px 0;
+            border-bottom: 1px dashed rgba(90, 58, 36, 0.3); /* Faint dashed line separator */
+        }
+        #historyLog li:last-child { border-bottom: none; } /* Remove border for last item */
+        .history-win { color: #27ae60; font-weight: bold; } /* Green for wins */
+        .history-loss { color: #c0392b; } /* Red for losses */
+
+
+        /* Message Box Styling */
+        .message-box-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); display: none; /* Hidden by default */
+            justify-content: center; align-items: center; z-index: 1000;
+        }
+        .message-box {
+            background-color: #f0e8c0; padding: 30px; border-radius: 10px;
+            border: 5px solid #5a3a24; box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+            text-align: center; max-width: 80%;
+        }
+        .message-box p { margin-bottom: 20px; font-size: 16px; color: #5a3a24; }
+        .message-box button {
+            font-family: 'Press Start 2P', cursive; padding: 10px 20px; font-size: 14px;
+            cursor: pointer; background-color: #8b5a2b; color: #f0e8c0;
+            border: 3px solid #5a3a24; border-radius: 8px; box-shadow: 0 4px #5a3a24;
+        }
+         .message-box button:active { box-shadow: 0 2px #5a3a24; transform: translateY(2px); }
+    </style>
+</head>
+<body>
+    <div class="main-game">
+        <h1>Vòng Quay May Mắn</h1>
+        <div class="game-container">
+            <div class="pointer"></div>
+            <canvas id="wheelCanvas" width="300" height="300"></canvas>
+        </div>
+
+        <div class="balance-info">
+            Vàng: <span id="playerBalance">100</span> G
+        </div>
+
+        <div class="controls">
+            <label for="winRateSlider">Tỷ lệ thắng (Xanh lá):</label>
+            <input type="range" id="winRateSlider" min="0" max="100" value="70">
+            <span id="winRateValue">70%</span>
+        </div>
+
+        <div class="betting-controls">
+             <label for="betAmount">Đặt cược:</label>
+             <input type="number" id="betAmount" min="1" value="10"> G
+        </div>
+
+        <div class="action-buttons">
+            <button id="spinButton">Quay!</button>
+            <button id="resetButton">Chơi lại</button>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <div class="history-section">
+        <h2>Lịch sử quay</h2>
+        <ul id="historyLog">
+            </ul>
+    </div>
+
+
+    <div id="messageBoxOverlay" class="message-box-overlay">
+        <div class="message-box">
+            <p id="messageText"></p>
+            <button id="messageCloseButton">Đóng</button>
+        </div>
+    </div>
+
+    <script>
+        // Get DOM elements
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const spinButton = document.getElementById('spinButton');
+        const resetButton = document.getElementById('resetButton');
+        const resultDiv = document.getElementById('result');
+        const winRateSlider = document.getElementById('winRateSlider');
+        const winRateValueSpan = document.getElementById('winRateValue');
+        const playerBalanceSpan = document.getElementById('playerBalance');
+        const betAmountInput = document.getElementById('betAmount');
+        const historyLog = document.getElementById('historyLog'); // Get history ul element
+        const messageBoxOverlay = document.getElementById('messageBoxOverlay');
+        const messageText = document.getElementById('messageText');
+        const messageCloseButton = document.getElementById('messageCloseButton');
+
+        // --- Game Settings ---
+        const initialBalance = 100; // Initial balance
+        const defaultBet = 10;      // Default bet amount
+        const defaultWinRate = 70;  // Default win rate (%)
+        const maxHistory = 10;     // Maximum history entries to display
+        let playerBalance = initialBalance; // Current balance
+        let currentBet = 0;          // Bet amount for the current spin
+        let spinHistory = [];       // Array to store history
+
+        // Initialize segments based on defaultWinRate
+        let segments = [
+            { color: '#2ecc71', label: 'Xanh lá', weight: defaultWinRate },
+            { color: '#e67e22', label: 'Cam',    weight: 100 - defaultWinRate }
+        ];
+        // ------------------------
+
+        // Variables for the wheel
+        let totalWeight = segments.reduce((sum, segment) => sum + segment.weight, 0);
+        const radius = canvas.width / 2 - 10; // Wheel radius
+        const center = canvas.width / 2;      // Wheel center
+
+        // Variables for animation
+        let currentAngle = 0;       // Current angle of the wheel
+        let spinAngleStart = 0;     // Initial angular velocity
+        let spinTime = 0;           // Time elapsed during spin (ms)
+        let spinTimeTotal = 0;      // Total spin duration (ms)
+        let isSpinning = false;     // Spinning state flag
+
+        // --- UI Update Functions ---
+        // Update balance display
+        function updateBalanceDisplay() {
+            playerBalanceSpan.textContent = playerBalance;
+        }
+
+        // Update segment weights and redraw the wheel based on the slider
+        function updateWeightsAndRedraw() {
+            const greenWeight = parseInt(winRateSlider.value); // Get % value from slider
+            const orangeWeight = 100 - greenWeight;
+
+            // Update weights in the segments array
+            segments[0].weight = greenWeight;
+            segments[1].weight = orangeWeight;
+
+            // Update total weight
+            totalWeight = greenWeight + orangeWeight; // Always 100
+
+            // Update the displayed % value
+            winRateValueSpan.textContent = `${greenWeight}%`;
+
+            // Redraw the wheel with the new proportions
+            drawWheel();
+        }
+
+        // Draw the wheel on the canvas
+        function drawWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+            ctx.strokeStyle = '#5a3a24'; // Border color
+            ctx.lineWidth = 5;          // Border width
+            ctx.font = '12px "Press Start 2P"'; // Font for labels (if any)
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            let startAngle = currentAngle; // Starting angle for the first segment
+
+            // Ensure totalWeight > 0 to avoid division by zero error
+            if (totalWeight <= 0) {
+                console.error("Total weight is zero or negative, cannot draw wheel.");
+                return;
+            }
+
+            // Loop through segments to draw them
+            segments.forEach((segment) => {
+                // Only draw segment if weight > 0
+                if (segment.weight > 0) {
+                    // Calculate the angular size of the segment based on its weight
+                    const segmentArcSize = (segment.weight / totalWeight) * (2 * Math.PI);
+                    const endAngle = startAngle + segmentArcSize; // Ending angle
+                    ctx.fillStyle = segment.color; // Set fill color
+
+                    // Draw the pie slice
+                    ctx.beginPath();
+                    ctx.arc(center, center, radius, startAngle, endAngle, false); // Outer arc
+                    ctx.arc(center, center, radius * 0.3, endAngle, startAngle, true); // Inner arc (creates the hole)
+                    ctx.closePath();
+                    ctx.fill();  // Fill color
+                    ctx.stroke(); // Draw border
+
+                    // Update the starting angle for the next segment
+                    startAngle = endAngle;
+                 }
+            });
+
+             // Draw the center circle
+            ctx.fillStyle = '#8b5a2b'; // Wooden brown color
+            ctx.beginPath();
+            ctx.arc(center, center, radius * 0.3, 0, Math.PI * 2, false);
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        // --- History Display Function ---
+        // Update the content in the history section
+        function updateHistoryDisplay() {
+            historyLog.innerHTML = ''; // Clear old history from UI
+            // Only show the maximum number of history entries
+            const historyToShow = spinHistory.slice(0, maxHistory);
+            // Loop through history (newest first) to create list items
+            historyToShow.forEach(entry => {
+                const li = document.createElement('li'); // Create list item element
+                let outcomeText = ''; // Text for Win/Loss result
+                let outcomeClass = ''; // CSS class for result color
+                if (entry.outcome > 0) { // If won (outcome > 0)
+                    outcomeText = `Thắng ${entry.outcome} G`; // Vietnamese UI Text
+                    outcomeClass = 'history-win'; // Green class
+                } else { // If lost (outcome <= 0)
+                    outcomeText = `Thua ${Math.abs(entry.outcome)} G`; // Vietnamese UI Text
+                    outcomeClass = 'history-loss'; // Red class
+                }
+                // Create HTML content for the list item
+                li.innerHTML = `Cược ${entry.bet} G, trúng <strong style="color:${entry.color};">${entry.result}</strong>. <span class="${outcomeClass}">${outcomeText}</span>. Còn: ${entry.balanceAfter} G`; // Vietnamese UI Text
+                historyLog.appendChild(li); // Add the li element to the ul list
+            });
+        }
+
+
+        // --- Utility Functions ---
+        // Show custom message box
+        function showMessage(message) {
+            messageText.textContent = message; // Set the message text
+            messageBoxOverlay.style.display = 'flex'; // Show the overlay
+        }
+        // Close message box when the close button is clicked
+        messageCloseButton.onclick = () => {
+            messageBoxOverlay.style.display = 'none';
+        };
+        // Close message box when clicking outside the message box area
+        messageBoxOverlay.onclick = (event) => {
+             if (event.target === messageBoxOverlay) { // Click was on the overlay itself
+                messageBoxOverlay.style.display = 'none';
+             }
+        }
+
+        // --- Reset Logic ---
+        // Reset game state
+        function resetGame() {
+            playerBalance = initialBalance; // Reset balance to initial value
+            updateBalanceDisplay(); // Update balance display
+
+            // DO NOT reset the win rate slider to default
+            // winRateSlider.value = defaultWinRate; // << This line is removed/commented
+
+            // Still update weights and redraw based on the CURRENT slider value
+            updateWeightsAndRedraw();
+
+            // Reset bet amount to default (or max possible if balance is less)
+            betAmountInput.value = Math.min(defaultBet, playerBalance > 0 ? playerBalance : 1);
+
+            // Clear old result message
+            resultDiv.textContent = '';
+            resultDiv.style.color = '#e74c3c'; // Reset result text color
+
+            // Enable/disable buttons based on state
+            const canPlay = playerBalance > 0;
+            spinButton.disabled = !canPlay || isSpinning;
+            betAmountInput.disabled = !canPlay || isSpinning;
+            winRateSlider.disabled = isSpinning; // Only disable slider when spinning
+
+            // Reset spinning state
+            isSpinning = false;
+            // currentAngle = 0; // Optional: Reset angle to start wheel at the same position
+
+            // Close message box if open
+            messageBoxOverlay.style.display = 'none';
+
+            // Clear history
+            spinHistory = [];
+            updateHistoryDisplay(); // Update history display (empty)
+
+            console.log("Game reset! Win rate kept."); // Log for debugging
+        }
+
+
+        // --- Spin and Bet Logic ---
+        // Wheel spinning animation
+        function rotateWheel() {
+            spinTime += 30; // Increment time elapsed (approx 30fps)
+            // Stop if spin duration is reached
+            if (spinTime >= spinTimeTotal) {
+                stopRotateWheel(); // Call stop function
+                return;
+            }
+
+            // Calculate decreasing angular velocity (ease-out effect)
+            // sin(pi/2 - x) = cos(x). As time increases -> x increases -> cos(x) decreases -> speed decreases
+            const spinAngle = spinAngleStart * Math.sin(Math.PI / 2 - (spinTime / spinTimeTotal) * (Math.PI / 2));
+            // Update current angle (convert degrees to radians)
+            currentAngle += (spinAngle * Math.PI / 180);
+            drawWheel(); // Redraw wheel at the new angle
+            requestAnimationFrame(rotateWheel); // Request the next animation frame
+        }
+
+        // Stop the wheel and process the result
+        function stopRotateWheel() {
+            isSpinning = false; // Set spinning state to false
+            const canPlay = playerBalance > 0; // Re-check balance after result
+            // Re-enable controls (unless out of money)
+            spinButton.disabled = !canPlay;
+            winRateSlider.disabled = false; // Always re-enable slider
+            betAmountInput.disabled = !canPlay;
+
+            // Calculate the final angle of the wheel (normalized to 0 -> 2*PI)
+            const finalAngle = currentAngle % (2 * Math.PI);
+            // Angle of the pointer (top center, i.e., 3*PI/2 or -PI/2)
+            const pointerAngle = (3 * Math.PI / 2);
+            // Calculate the angle of the pointer relative to the start of segment 0
+            let relativeAngle = pointerAngle - finalAngle;
+            if (relativeAngle < 0) {
+                relativeAngle += (2 * Math.PI); // Ensure positive angle
+            }
+
+            // Determine which segment the pointer landed on based on angle and weights
+            let cumulativeAngle = 0; // Accumulated angle
+            let winningSegment = segments[0]; // Default to the first segment
+            if (totalWeight <= 0) { // Check for error in totalWeight
+                 resultDiv.textContent = "Lỗi!"; // Vietnamese UI Text
+                 return;
+            }
+
+            for (const segment of segments) {
+                 if (segment.weight > 0) { // Only consider segments with weight
+                    const segmentArcSize = (segment.weight / totalWeight) * (2 * Math.PI);
+                    cumulativeAngle += segmentArcSize; // Add segment size to cumulative angle
+                    // If the pointer's relative angle falls within this segment's range
+                    if (relativeAngle <= cumulativeAngle) {
+                        winningSegment = segment; // This is the winning segment
+                        break; // Exit loop
+                    }
+                 }
+            }
+             // Fallback in case no segment is found (should not happen with valid weights)
+             if (!winningSegment) {
+                 winningSegment = segments.find(s => s.weight > 0) || segments[0];
+             }
+
+            // Process win/loss result and update balance
+            let outcomeAmount = 0; // Amount won/lost in this spin (+/-)
+            if (winningSegment.label === 'Xanh lá') { // If win (Green)
+                const winnings = currentBet * 2; // Win double the bet (get bet back + win amount equal to bet)
+                playerBalance += winnings;     // Add winnings to balance
+                outcomeAmount = currentBet;     // Net gain is the bet amount
+                resultDiv.textContent = `Thắng! Bạn nhận được ${winnings} G!`; // Display win - Vietnamese UI Text
+                resultDiv.style.color = '#27ae60'; // Green color
+            } else { // If loss (Orange)
+                outcomeAmount = -currentBet; // Loss is the bet amount
+                // Balance was already deducted before spin
+                resultDiv.textContent = `Thua! Bạn mất ${currentBet} G.`; // Display loss - Vietnamese UI Text
+                resultDiv.style.color = '#e74c3c'; // Red color
+            }
+
+            updateBalanceDisplay(); // Update balance display BEFORE saving history
+
+            // Add result to history
+            spinHistory.unshift({ // Add to the beginning of the array (newest first)
+                result: winningSegment.label,   // Winning color label
+                color: winningSegment.color,    // Color code for display
+                bet: currentBet,                // Amount bet
+                outcome: outcomeAmount,         // Net amount won/lost (+/-)
+                balanceAfter: playerBalance     // Balance after the spin resolved
+            });
+            // Keep history size limited
+            if (spinHistory.length > maxHistory) {
+                spinHistory.pop(); // Remove the oldest entry (from the end)
+            }
+            updateHistoryDisplay(); // Update history display on UI
+
+            // Check if out of money after updating history
+            if (playerBalance <= 0) {
+                showMessage("Bạn đã hết vàng! Nhấn 'Chơi lại' để bắt đầu lại."); // Vietnamese UI Text
+                spinButton.disabled = true; // Disable spin button
+                betAmountInput.disabled = true; // Disable bet input
+            }
+        }
+
+        // --- Event Listeners ---
+        // Spin button click event
+        spinButton.addEventListener('click', () => {
+            if (isSpinning) return; // Do nothing if already spinning
+
+            // Read and validate the bet amount
+            const betValue = parseInt(betAmountInput.value);
+
+            // Check bet validity
+            if (isNaN(betValue) || betValue <= 0) {
+                showMessage("Vui lòng nhập số tiền cược hợp lệ (lớn hơn 0)."); // Vietnamese UI Text
+                return;
+            }
+            if (betValue > playerBalance) {
+                showMessage(`Bạn không đủ vàng! Vàng hiện tại: ${playerBalance} G.`); // Vietnamese UI Text
+                return;
+            }
+             // Check if spinning is possible (valid segments exist)
+             if (totalWeight <= 0) {
+                showMessage("Không thể quay vì không có ô nào có tỉ lệ."); // Vietnamese UI Text
+                return;
+            }
+
+            // If bet is valid, start the spin
+            currentBet = betValue; // Store the bet for this spin
+            playerBalance -= currentBet; // Deduct bet from balance
+            updateBalanceDisplay(); // Update balance display immediately
+
+            isSpinning = true; // Set spinning state
+            // Disable controls during spin
+            spinButton.disabled = true;
+            winRateSlider.disabled = true;
+            betAmountInput.disabled = true;
+            resultDiv.textContent = 'Đang quay...'; // Display spinning message - Vietnamese UI Text
+            resultDiv.style.color = '#5a3a24'; // Reset result text color
+
+            // Generate random spin parameters
+            spinAngleStart = Math.random() * 10 + 10; // Initial speed (10-20 deg/frame)
+            spinTime = 0; // Reset spin time
+            spinTimeTotal = Math.random() * 3000 + 4000; // Random spin duration (4-7 seconds)
+
+            rotateWheel(); // Start the spinning animation
+        });
+
+        // Reset button click event
+        resetButton.addEventListener('click', resetGame);
+
+        // Win rate slider input event
+        winRateSlider.addEventListener('input', () => {
+            // Only allow changes when not spinning
+            if (!isSpinning) {
+                updateWeightsAndRedraw(); // Update weights and redraw
+            }
+        });
+
+        // Bet amount input event
+        betAmountInput.addEventListener('input', () => {
+             if (isSpinning) return; // Don't allow editing bet while spinning
+            let betValue = parseInt(betAmountInput.value);
+            // Auto-adjust if value is invalid
+            if (isNaN(betValue) || betValue < 1) {
+                betAmountInput.value = 1; // Reset to minimum 1
+            } else if (betValue > playerBalance && playerBalance > 0) {
+                betAmountInput.value = playerBalance; // Limit bet to current balance
+            } else if (playerBalance <= 0) {
+                 betAmountInput.value = 0; // Can't bet if no money
+            }
+        });
+
+
+        // Initialize game on page load
+        window.onload = () => {
+             // Set initial slider value (only on first load)
+             winRateSlider.value = defaultWinRate;
+             // Call resetGame to set up initial state (balance, bet, history, etc.)
+             // resetGame will now read the slider value set above to draw the initial wheel
+             resetGame();
+        };
+
+    </script>
+
+</body>
+</html>
