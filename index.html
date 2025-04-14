@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vòng Quay May Mắn - English Comments</title> <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <title>Vòng Quay May Mắn - English Comments</title>
+    <!-- Import Roboto font with Vietnamese support -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             display: flex;
@@ -11,7 +13,8 @@
             align-items: center;
             min-height: 100vh;
             background-color: #f0e8c0;
-            font-family: 'Press Start 2P', cursive;
+            /* Use Roboto font */
+            font-family: 'Roboto', sans-serif;
             color: #5a3a24;
             flex-direction: column;
             text-align: center;
@@ -65,7 +68,8 @@
         }
 
         button {
-            font-family: 'Press Start 2P', cursive;
+            /* Inherit font from body */
+            font-family: inherit;
             padding: 15px 25px;
             font-size: 14px;
             cursor: pointer;
@@ -76,6 +80,7 @@
             text-transform: uppercase;
             transition: background-color 0.3s ease, transform 0.1s ease;
             box-shadow: 0 5px #5a3a24;
+            font-weight: bold; /* Make text bolder */
         }
         #resetButton {
              background-color: #c0392b;
@@ -127,7 +132,7 @@
         .controls label, .betting-controls label {
             display: block;
             margin-bottom: 8px;
-            font-size: 12px;
+            font-size: 14px; /* Increase label font size */
         }
         .controls input[type="range"] {
             width: 75%;
@@ -136,7 +141,7 @@
             vertical-align: middle;
         }
         .controls span {
-            font-size: 12px;
+            font-size: 14px; /* Increase % value font size */
             font-weight: bold;
             color: #c0392b;
             min-width: 35px;
@@ -146,7 +151,7 @@
             vertical-align: middle;
         }
          .balance-info {
-             font-size: 14px;
+             font-size: 16px; /* Increase font size */
              margin-bottom: 10px;
              color: #34495e;
          }
@@ -155,7 +160,8 @@
              color: #27ae60;
          }
          .betting-controls input[type="number"] {
-            font-family: 'Press Start 2P', cursive;
+            /* Inherit font from body */
+            font-family: inherit;
             font-size: 14px;
             padding: 8px;
             border: 2px solid #8b5a2b;
@@ -186,7 +192,7 @@
             box-sizing: border-box;
         }
         .history-section h2 {
-            font-size: 14px;
+            font-size: 16px; /* Increase font size */
             margin-bottom: 10px;
             color: #5a3a24;
             border-bottom: 2px solid #8b5a2b;
@@ -196,7 +202,7 @@
             list-style: none; padding: 0; margin: 0;
             max-height: 150px; overflow-y: auto; /* Add scrollbar when needed */
             text-align: left; /* Align history text left */
-            font-size: 11px; /* Smaller font for history */
+            font-size: 13px; /* Increase history font size */
             line-height: 1.6; /* Increase line spacing */
         }
         #historyLog li {
@@ -221,9 +227,12 @@
         }
         .message-box p { margin-bottom: 20px; font-size: 16px; color: #5a3a24; }
         .message-box button {
-            font-family: 'Press Start 2P', cursive; padding: 10px 20px; font-size: 14px;
+            /* Inherit font from body */
+            font-family: inherit;
+            padding: 10px 20px; font-size: 14px;
             cursor: pointer; background-color: #8b5a2b; color: #f0e8c0;
             border: 3px solid #5a3a24; border-radius: 8px; box-shadow: 0 4px #5a3a24;
+            font-weight: bold; /* Make text bolder */
         }
          .message-box button:active { box-shadow: 0 2px #5a3a24; transform: translateY(2px); }
     </style>
@@ -347,7 +356,8 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
             ctx.strokeStyle = '#5a3a24'; // Border color
             ctx.lineWidth = 5;          // Border width
-            ctx.font = '12px "Press Start 2P"'; // Font for labels (if any)
+            // Use Roboto font for Canvas
+            ctx.font = 'bold 12px Roboto';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
@@ -401,14 +411,15 @@
                 let outcomeText = ''; // Text for Win/Loss result
                 let outcomeClass = ''; // CSS class for result color
                 if (entry.outcome > 0) { // If won (outcome > 0)
-                    outcomeText = `Thắng ${entry.outcome} G`; // Vietnamese UI Text
+                    outcomeText = `Thắng ${entry.outcome} G`; // Win ${entry.outcome} G (Vietnamese UI Text)
                     outcomeClass = 'history-win'; // Green class
                 } else { // If lost (outcome <= 0)
-                    outcomeText = `Thua ${Math.abs(entry.outcome)} G`; // Vietnamese UI Text
+                    outcomeText = `Thua ${Math.abs(entry.outcome)} G`; // Lose ${Math.abs(entry.outcome)} G (Vietnamese UI Text)
                     outcomeClass = 'history-loss'; // Red class
                 }
                 // Create HTML content for the list item
-                li.innerHTML = `Cược ${entry.bet} G, trúng <strong style="color:${entry.color};">${entry.result}</strong>. <span class="${outcomeClass}">${outcomeText}</span>. Còn: ${entry.balanceAfter} G`; // Vietnamese UI Text
+                // Bet ${entry.bet} G, hit <strong style="color:${entry.color};">${entry.result}</strong>. <span class="${outcomeClass}">${outcomeText}</span>. Remaining: ${entry.balanceAfter} G (Vietnamese UI Text)
+                li.innerHTML = `Cược ${entry.bet} G, trúng <strong style="color:${entry.color};">${entry.result}</strong>. <span class="${outcomeClass}">${outcomeText}</span>. Còn: ${entry.balanceAfter} G`;
                 historyLog.appendChild(li); // Add the li element to the ul list
             });
         }
@@ -513,7 +524,7 @@
             let cumulativeAngle = 0; // Accumulated angle
             let winningSegment = segments[0]; // Default to the first segment
             if (totalWeight <= 0) { // Check for error in totalWeight
-                 resultDiv.textContent = "Lỗi!"; // Vietnamese UI Text
+                 resultDiv.textContent = "Lỗi!"; // Error! (Vietnamese UI Text)
                  return;
             }
 
@@ -539,12 +550,12 @@
                 const winnings = currentBet * 2; // Win double the bet (get bet back + win amount equal to bet)
                 playerBalance += winnings;     // Add winnings to balance
                 outcomeAmount = currentBet;     // Net gain is the bet amount
-                resultDiv.textContent = `Thắng! Bạn nhận được ${winnings} G!`; // Display win - Vietnamese UI Text
+                resultDiv.textContent = `Thắng! Bạn nhận được ${winnings} G!`; // Win! You received ${winnings} G! (Vietnamese UI Text)
                 resultDiv.style.color = '#27ae60'; // Green color
             } else { // If loss (Orange)
                 outcomeAmount = -currentBet; // Loss is the bet amount
                 // Balance was already deducted before spin
-                resultDiv.textContent = `Thua! Bạn mất ${currentBet} G.`; // Display loss - Vietnamese UI Text
+                resultDiv.textContent = `Thua! Bạn mất ${currentBet} G.`; // Lose! You lost ${currentBet} G. (Vietnamese UI Text)
                 resultDiv.style.color = '#e74c3c'; // Red color
             }
 
@@ -566,7 +577,7 @@
 
             // Check if out of money after updating history
             if (playerBalance <= 0) {
-                showMessage("Bạn đã hết vàng! Nhấn 'Chơi lại' để bắt đầu lại."); // Vietnamese UI Text
+                showMessage("Bạn đã hết vàng! Nhấn 'Chơi lại' để bắt đầu lại."); // You ran out of gold! Press 'Play Again' to restart. (Vietnamese UI Text)
                 spinButton.disabled = true; // Disable spin button
                 betAmountInput.disabled = true; // Disable bet input
             }
@@ -582,16 +593,16 @@
 
             // Check bet validity
             if (isNaN(betValue) || betValue <= 0) {
-                showMessage("Vui lòng nhập số tiền cược hợp lệ (lớn hơn 0)."); // Vietnamese UI Text
+                showMessage("Vui lòng nhập số tiền cược hợp lệ (lớn hơn 0)."); // Please enter a valid bet amount (greater than 0). (Vietnamese UI Text)
                 return;
             }
             if (betValue > playerBalance) {
-                showMessage(`Bạn không đủ vàng! Vàng hiện tại: ${playerBalance} G.`); // Vietnamese UI Text
+                showMessage(`Bạn không đủ vàng! Vàng hiện tại: ${playerBalance} G.`); // You don't have enough gold! Current gold: ${playerBalance} G. (Vietnamese UI Text)
                 return;
             }
              // Check if spinning is possible (valid segments exist)
              if (totalWeight <= 0) {
-                showMessage("Không thể quay vì không có ô nào có tỉ lệ."); // Vietnamese UI Text
+                showMessage("Không thể quay vì không có ô nào có tỉ lệ."); // Cannot spin because no segment has a weight. (Vietnamese UI Text)
                 return;
             }
 
@@ -605,7 +616,7 @@
             spinButton.disabled = true;
             winRateSlider.disabled = true;
             betAmountInput.disabled = true;
-            resultDiv.textContent = 'Đang quay...'; // Display spinning message - Vietnamese UI Text
+            resultDiv.textContent = 'Đang quay...'; // Spinning... (Vietnamese UI Text)
             resultDiv.style.color = '#5a3a24'; // Reset result text color
 
             // Generate random spin parameters
