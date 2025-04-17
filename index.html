@@ -303,11 +303,13 @@
         const defaultBet = 10;      // Default bet amount
         const defaultWinRate = 70;  // Default win rate (%)
         const maxHistory = 10;     // Maximum history entries to display
-        let playerBalance = initialBalance; // Current balance
-        let currentBet = 0;          // Bet amount for the current spin
-        let spinHistory = [];       // Array to store history
+        const localStorageKey = 'wheelGameState'; // Key for local storage
 
-        // Initialize segments based on defaultWinRate
+        let playerBalance = initialBalance; // Current balance (will be overwritten by loadGameState)
+        let currentBet = 0;          // Bet amount for the current spin
+        let spinHistory = [];       // Array to store history (will be overwritten by loadGameState)
+
+        // Initialize segments based on defaultWinRate (will be updated by loadGameState/updateWeights)
         let segments = [
             { color: '#2ecc71', label: 'Xanh lá', weight: defaultWinRate },
             { color: '#e67e22', label: 'Cam',    weight: 100 - defaultWinRate }
@@ -325,6 +327,79 @@
         let spinTime = 0;           // Time elapsed during spin (ms)
         let spinTimeTotal = 0;      // Total spin duration (ms)
         let isSpinning = false;     // Spinning state flag
+
+        // --- Local Storage Functions ---
+        function saveGameState() {
+            try {
+                const gameState = {
+                    balance: playerBalance,
+                    winRate: parseInt(winRateSlider.value),
+                    history: spinHistory
+                };
+                localStorage.setItem(localStorageKey, JSON.stringify(gameState));
+                console.log("Game state saved."); // For debugging
+            } catch (error) {
+                console.error("Error saving game state to localStorage:", error);
+                // Optionally show a message to the user
+                // showMessage("Không thể lưu trạng thái trò chơi.");
+            }
+        }
+
+        function loadGameState() {
+            try {
+                const savedStateJSON = localStorage.getItem(localStorageKey);
+                if (savedStateJSON) {
+                    const savedState = JSON.parse(savedStateJSON);
+                    playerBalance = savedState.balance !== undefined ? savedState.balance : initialBalance;
+                    // Ensure history is an array
+                    spinHistory = Array.isArray(savedState.history) ? savedState.history : [];
+                    // Set slider value *before* updating weights
+                    winRateSlider.value = savedState.winRate !== undefined ? savedState.winRate : defaultWinRate;
+                    console.log("Game state loaded."); // For debugging
+                } else {
+                    // No saved state, use defaults
+                    playerBalance = initialBalance;
+                    winRateSlider.value = defaultWinRate;
+                    spinHistory = [];
+                    console.log("No saved state found, using defaults."); // For debugging
+                }
+            } catch (error) {
+                console.error("Error loading game state from localStorage:", error);
+                // Fallback to defaults if loading fails
+                playerBalance = initialBalance;
+                winRateSlider.value = defaultWinRate;
+                spinHistory = [];
+                // Optionally clear corrupted data
+                // localStorage.removeItem(localStorageKey);
+                // showMessage("Lỗi khi tải trạng thái đã lưu, bắt đầu lại.");
+            }
+
+            // --- Initial UI Setup (needs to happen after loading state) ---
+            updateBalanceDisplay();
+            updateWeightsAndRedraw(); // Updates segments based on slider, calculates totalWeight, draws wheel
+            updateHistoryDisplay();
+
+            // Set initial bet amount (or max possible if balance is less)
+            betAmountInput.value = Math.min(defaultBet, playerBalance > 0 ? playerBalance : 1);
+            if (playerBalance <= 0) {
+                 betAmountInput.value = 0; // Can't bet if no money
+            }
+
+            // Enable/disable buttons based on loaded state
+            const canPlay = playerBalance > 0;
+            spinButton.disabled = !canPlay || isSpinning;
+            betAmountInput.disabled = !canPlay || isSpinning;
+            winRateSlider.disabled = isSpinning; // Should not be spinning on load
+
+            // Clear any leftover result message
+            resultDiv.textContent = '';
+            resultDiv.style.color = '#e74c3c';
+
+            // Ensure message box is hidden on load
+            messageBoxOverlay.style.display = 'none';
+            isSpinning = false; // Ensure spinning state is false on load
+        }
+
 
         // --- UI Update Functions ---
         // Update balance display
@@ -365,7 +440,12 @@
 
             // Ensure totalWeight > 0 to avoid division by zero error
             if (totalWeight <= 0) {
-                console.error("Total weight is zero or negative, cannot draw wheel.");
+                console.warn("Total weight is zero or negative, cannot draw wheel segments accurately.");
+                // Draw a placeholder or leave blank? Let's leave it blank for now.
+                // Optionally draw a simple circle border
+                ctx.beginPath();
+                ctx.arc(center, center, radius, 0, 2 * Math.PI, false);
+                ctx.stroke();
                 return;
             }
 
@@ -404,22 +484,30 @@
         function updateHistoryDisplay() {
             historyLog.innerHTML = ''; // Clear old history from UI
             // Only show the maximum number of history entries
-            const historyToShow = spinHistory.slice(0, maxHistory);
+            // Ensure spinHistory is an array before slicing
+            const historyToDisplay = Array.isArray(spinHistory) ? spinHistory.slice(0, maxHistory) : [];
             // Loop through history (newest first) to create list items
-            historyToShow.forEach(entry => {
+            historyToDisplay.forEach(entry => {
+                // Basic validation of entry structure
+                if (typeof entry !== 'object' || entry === null || !entry.result) return;
+
                 const li = document.createElement('li'); // Create list item element
                 let outcomeText = ''; // Text for Win/Loss result
                 let outcomeClass = ''; // CSS class for result color
-                if (entry.outcome > 0) { // If won (outcome > 0)
-                    outcomeText = `Thắng ${entry.outcome} G`; // Win ${entry.outcome} G (Vietnamese UI Text)
+                const outcome = entry.outcome || 0; // Default outcome to 0 if missing
+                const bet = entry.bet || 0; // Default bet to 0 if missing
+                const balanceAfter = entry.balanceAfter !== undefined ? entry.balanceAfter : 'N/A'; // Handle missing balance
+
+                if (outcome > 0) { // If won (outcome > 0)
+                    outcomeText = `Thắng ${outcome} G`; // Win ${entry.outcome} G (Vietnamese UI Text)
                     outcomeClass = 'history-win'; // Green class
                 } else { // If lost (outcome <= 0)
-                    outcomeText = `Thua ${Math.abs(entry.outcome)} G`; // Lose ${Math.abs(entry.outcome)} G (Vietnamese UI Text)
+                    outcomeText = `Thua ${Math.abs(outcome)} G`; // Lose ${Math.abs(entry.outcome)} G (Vietnamese UI Text)
                     outcomeClass = 'history-loss'; // Red class
                 }
                 // Create HTML content for the list item
                 // Bet ${entry.bet} G, hit <strong style="color:${entry.color};">${entry.result}</strong>. <span class="${outcomeClass}">${outcomeText}</span>. Remaining: ${entry.balanceAfter} G (Vietnamese UI Text)
-                li.innerHTML = `Cược ${entry.bet} G, trúng <strong style="color:${entry.color};">${entry.result}</strong>. <span class="${outcomeClass}">${outcomeText}</span>. Còn: ${entry.balanceAfter} G`;
+                li.innerHTML = `Cược ${bet} G, trúng <strong style="color:${entry.color || '#000'};">${entry.result}</strong>. <span class="${outcomeClass}">${outcomeText}</span>. Còn: ${balanceAfter} G`;
                 historyLog.appendChild(li); // Add the li element to the ul list
             });
         }
@@ -443,16 +531,24 @@
         }
 
         // --- Reset Logic ---
-        // Reset game state
+        // Reset game state TO DEFAULTS and clear saved state
         function resetGame() {
+            // Clear saved state from local storage
+            try {
+                localStorage.removeItem(localStorageKey);
+                console.log("Cleared saved game state."); // For debugging
+            } catch (error) {
+                console.error("Error removing game state from localStorage:", error);
+            }
+
             playerBalance = initialBalance; // Reset balance to initial value
-            updateBalanceDisplay(); // Update balance display
+            winRateSlider.value = defaultWinRate; // Reset slider to default
+            spinHistory = []; // Clear current history array
 
-            // DO NOT reset the win rate slider to default
-            // winRateSlider.value = defaultWinRate; // << This line is removed/commented
-
-            // Still update weights and redraw based on the CURRENT slider value
-            updateWeightsAndRedraw();
+            // Update UI to reflect reset state
+            updateBalanceDisplay();
+            updateWeightsAndRedraw(); // Update segments based on default slider, redraw wheel
+            updateHistoryDisplay(); // Clear history display
 
             // Reset bet amount to default (or max possible if balance is less)
             betAmountInput.value = Math.min(defaultBet, playerBalance > 0 ? playerBalance : 1);
@@ -463,22 +559,18 @@
 
             // Enable/disable buttons based on state
             const canPlay = playerBalance > 0;
-            spinButton.disabled = !canPlay || isSpinning;
+            spinButton.disabled = !canPlay || isSpinning; // isSpinning should be false here
             betAmountInput.disabled = !canPlay || isSpinning;
             winRateSlider.disabled = isSpinning; // Only disable slider when spinning
 
-            // Reset spinning state
+            // Reset spinning state just in case
             isSpinning = false;
             // currentAngle = 0; // Optional: Reset angle to start wheel at the same position
 
             // Close message box if open
             messageBoxOverlay.style.display = 'none';
 
-            // Clear history
-            spinHistory = [];
-            updateHistoryDisplay(); // Update history display (empty)
-
-            console.log("Game reset! Win rate kept."); // Log for debugging
+            console.log("Game reset to defaults!"); // Log for debugging
         }
 
 
@@ -493,7 +585,6 @@
             }
 
             // Calculate decreasing angular velocity (ease-out effect)
-            // sin(pi/2 - x) = cos(x). As time increases -> x increases -> cos(x) decreases -> speed decreases
             const spinAngle = spinAngleStart * Math.sin(Math.PI / 2 - (spinTime / spinTimeTotal) * (Math.PI / 2));
             // Update current angle (convert degrees to radians)
             currentAngle += (spinAngle * Math.PI / 180);
@@ -504,11 +595,6 @@
         // Stop the wheel and process the result
         function stopRotateWheel() {
             isSpinning = false; // Set spinning state to false
-            const canPlay = playerBalance > 0; // Re-check balance after result
-            // Re-enable controls (unless out of money)
-            spinButton.disabled = !canPlay;
-            winRateSlider.disabled = false; // Always re-enable slider
-            betAmountInput.disabled = !canPlay;
 
             // Calculate the final angle of the wheel (normalized to 0 -> 2*PI)
             const finalAngle = currentAngle % (2 * Math.PI);
@@ -522,26 +608,34 @@
 
             // Determine which segment the pointer landed on based on angle and weights
             let cumulativeAngle = 0; // Accumulated angle
-            let winningSegment = segments[0]; // Default to the first segment
+            let winningSegment = null; // Initialize to null
+
             if (totalWeight <= 0) { // Check for error in totalWeight
                  resultDiv.textContent = "Lỗi!"; // Error! (Vietnamese UI Text)
+                 // Re-enable controls even on error? Maybe not spin button if balance is 0.
+                 const canPlay = playerBalance > 0;
+                 spinButton.disabled = !canPlay;
+                 winRateSlider.disabled = false;
+                 betAmountInput.disabled = !canPlay;
                  return;
             }
 
             for (const segment of segments) {
                  if (segment.weight > 0) { // Only consider segments with weight
                     const segmentArcSize = (segment.weight / totalWeight) * (2 * Math.PI);
-                    cumulativeAngle += segmentArcSize; // Add segment size to cumulative angle
                     // If the pointer's relative angle falls within this segment's range
-                    if (relativeAngle <= cumulativeAngle) {
+                    // Use a small epsilon for floating point comparison safety
+                    if (relativeAngle <= cumulativeAngle + segmentArcSize + 1e-9) {
                         winningSegment = segment; // This is the winning segment
                         break; // Exit loop
                     }
+                    cumulativeAngle += segmentArcSize; // Add segment size to cumulative angle
                  }
             }
-             // Fallback in case no segment is found (should not happen with valid weights)
+             // Fallback in case no segment is found (should not happen with valid weights > 0)
              if (!winningSegment) {
-                 winningSegment = segments.find(s => s.weight > 0) || segments[0];
+                 console.error("Could not determine winning segment!");
+                 winningSegment = segments.find(s => s.weight > 0) || segments[0]; // Best guess fallback
              }
 
             // Process win/loss result and update balance
@@ -552,7 +646,7 @@
                 outcomeAmount = currentBet;     // Net gain is the bet amount
                 resultDiv.textContent = `Thắng! Bạn nhận được ${winnings} G!`; // Win! You received ${winnings} G! (Vietnamese UI Text)
                 resultDiv.style.color = '#27ae60'; // Green color
-            } else { // If loss (Orange)
+            } else { // If loss (Orange or other losing color)
                 outcomeAmount = -currentBet; // Loss is the bet amount
                 // Balance was already deducted before spin
                 resultDiv.textContent = `Thua! Bạn mất ${currentBet} G.`; // Lose! You lost ${currentBet} G. (Vietnamese UI Text)
@@ -575,11 +669,20 @@
             }
             updateHistoryDisplay(); // Update history display on UI
 
-            // Check if out of money after updating history
+            // --- SAVE GAME STATE AFTER SPIN ---
+            saveGameState();
+            // ---------------------------------
+
+            // Re-enable controls (unless out of money)
+            const canPlay = playerBalance > 0;
+            spinButton.disabled = !canPlay;
+            winRateSlider.disabled = false; // Always re-enable slider
+            betAmountInput.disabled = !canPlay;
+
+            // Check if out of money after updating history and saving
             if (playerBalance <= 0) {
                 showMessage("Bạn đã hết vàng! Nhấn 'Chơi lại' để bắt đầu lại."); // You ran out of gold! Press 'Play Again' to restart. (Vietnamese UI Text)
-                spinButton.disabled = true; // Disable spin button
-                betAmountInput.disabled = true; // Disable bet input
+                // Buttons are already disabled correctly above
             }
         }
 
@@ -601,7 +704,7 @@
                 return;
             }
              // Check if spinning is possible (valid segments exist)
-             if (totalWeight <= 0) {
+             if (totalWeight <= 0 || segments.every(s => s.weight <= 0)) {
                 showMessage("Không thể quay vì không có ô nào có tỉ lệ."); // Cannot spin because no segment has a weight. (Vietnamese UI Text)
                 return;
             }
@@ -635,6 +738,9 @@
             // Only allow changes when not spinning
             if (!isSpinning) {
                 updateWeightsAndRedraw(); // Update weights and redraw
+                // --- SAVE GAME STATE AFTER SLIDER CHANGE ---
+                saveGameState();
+                // -----------------------------------------
             }
         });
 
@@ -642,27 +748,27 @@
         betAmountInput.addEventListener('input', () => {
              if (isSpinning) return; // Don't allow editing bet while spinning
             let betValue = parseInt(betAmountInput.value);
-            // Auto-adjust if value is invalid
+            // Auto-adjust if value is invalid or exceeds balance
             if (isNaN(betValue) || betValue < 1) {
-                betAmountInput.value = 1; // Reset to minimum 1
+                 // Allow setting to 0 if balance is 0, otherwise min 1
+                betAmountInput.value = playerBalance <= 0 ? 0 : 1;
             } else if (betValue > playerBalance && playerBalance > 0) {
                 betAmountInput.value = playerBalance; // Limit bet to current balance
             } else if (playerBalance <= 0) {
                  betAmountInput.value = 0; // Can't bet if no money
             }
+            // Note: We don't save state on bet change, only balance/winRate/history matter for persistence.
         });
 
 
         // Initialize game on page load
         window.onload = () => {
-             // Set initial slider value (only on first load)
-             winRateSlider.value = defaultWinRate;
-             // Call resetGame to set up initial state (balance, bet, history, etc.)
-             // resetGame will now read the slider value set above to draw the initial wheel
-             resetGame();
+             // Load state from localStorage or set defaults, and update UI
+             loadGameState();
         };
 
     </script>
+
 
 </body>
 </html>
