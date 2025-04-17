@@ -331,13 +331,16 @@
         // --- Local Storage Functions ---
         function saveGameState() {
             try {
+                // Ensure bet amount is parsed correctly, default to 0 if invalid
+                const currentBetValue = parseInt(betAmountInput.value) || 0;
                 const gameState = {
                     balance: playerBalance,
                     winRate: parseInt(winRateSlider.value),
-                    history: spinHistory
+                    history: spinHistory,
+                    lastBet: currentBetValue // <-- ADDED: Save the current bet amount
                 };
                 localStorage.setItem(localStorageKey, JSON.stringify(gameState));
-                console.log("Game state saved."); // For debugging
+                console.log("Game state saved (including bet)."); // Updated log
             } catch (error) {
                 console.error("Error saving game state to localStorage:", error);
                 // Optionally show a message to the user
@@ -346,6 +349,7 @@
         }
 
         function loadGameState() {
+            let loadedBetAmount = defaultBet; // Start with default bet as a fallback
             try {
                 const savedStateJSON = localStorage.getItem(localStorageKey);
                 if (savedStateJSON) {
@@ -355,12 +359,20 @@
                     spinHistory = Array.isArray(savedState.history) ? savedState.history : [];
                     // Set slider value *before* updating weights
                     winRateSlider.value = savedState.winRate !== undefined ? savedState.winRate : defaultWinRate;
+
+                    // --- MODIFIED: Load last bet amount ---
+                    if (savedState.lastBet !== undefined && !isNaN(parseInt(savedState.lastBet))) {
+                        loadedBetAmount = parseInt(savedState.lastBet);
+                    }
+                    // --------------------------------------
+
                     console.log("Game state loaded."); // For debugging
                 } else {
                     // No saved state, use defaults
                     playerBalance = initialBalance;
                     winRateSlider.value = defaultWinRate;
                     spinHistory = [];
+                    loadedBetAmount = defaultBet; // Ensure default bet is used
                     console.log("No saved state found, using defaults."); // For debugging
                 }
             } catch (error) {
@@ -369,6 +381,7 @@
                 playerBalance = initialBalance;
                 winRateSlider.value = defaultWinRate;
                 spinHistory = [];
+                loadedBetAmount = defaultBet; // Fallback to default bet on error
                 // Optionally clear corrupted data
                 // localStorage.removeItem(localStorageKey);
                 // showMessage("Lỗi khi tải trạng thái đã lưu, bắt đầu lại.");
@@ -379,11 +392,19 @@
             updateWeightsAndRedraw(); // Updates segments based on slider, calculates totalWeight, draws wheel
             updateHistoryDisplay();
 
-            // Set initial bet amount (or max possible if balance is less)
-            betAmountInput.value = Math.min(defaultBet, playerBalance > 0 ? playerBalance : 1);
+            // --- MODIFIED: Set initial bet amount using loaded/validated value ---
+            let finalBetAmount = loadedBetAmount;
+            // Validate the loaded bet against the loaded balance
             if (playerBalance <= 0) {
-                 betAmountInput.value = 0; // Can't bet if no money
+                finalBetAmount = 0; // Can't bet if no money
+            } else if (finalBetAmount <= 0) {
+                 // If saved bet was 0 or invalid, use default or balance, whichever is smaller
+                 finalBetAmount = Math.min(defaultBet, playerBalance);
+            } else if (finalBetAmount > playerBalance) {
+                finalBetAmount = playerBalance; // If saved bet exceeds current balance, cap it
             }
+            betAmountInput.value = finalBetAmount;
+            // --------------------------------------------------------------------
 
             // Enable/disable buttons based on loaded state
             const canPlay = playerBalance > 0;
