@@ -554,31 +554,42 @@
         // --- Reset Logic ---
         // Reset game state TO DEFAULTS and clear saved state
         function resetGame() {
-            // Clear saved state from local storage
+            // Clear saved state from local storage (balance, history, etc.)
             try {
                 localStorage.removeItem(localStorageKey);
-                console.log("Cleared saved game state."); // For debugging
+                console.log("Cleared saved game state (balance/history/bet)."); // Updated log
             } catch (error) {
                 console.error("Error removing game state from localStorage:", error);
             }
 
+            // Reset balance and history
             playerBalance = initialBalance; // Reset balance to initial value
-            winRateSlider.value = defaultWinRate; // Reset slider to default
             spinHistory = []; // Clear current history array
 
-            // Update UI to reflect reset state
+            // --- Keep current win rate ---
+            // We don't reset winRateSlider.value here
+
+            // --- Reset bet amount to default (validated against new balance) ---
+            if (playerBalance <= 0) {
+                betAmountInput.value = 0; // Can't bet if no money
+            } else {
+                // Set to default bet or the new balance, whichever is smaller
+                betAmountInput.value = Math.min(defaultBet, playerBalance);
+            }
+            // -----------------------------------------------------------------
+
+            // Update UI displays for balance and history
             updateBalanceDisplay();
-            updateWeightsAndRedraw(); // Update segments based on default slider, redraw wheel
             updateHistoryDisplay(); // Clear history display
 
-            // Reset bet amount to default (or max possible if balance is less)
-            betAmountInput.value = Math.min(defaultBet, playerBalance > 0 ? playerBalance : 1);
+            // Update wheel based on the *current* slider value (which wasn't reset)
+            updateWeightsAndRedraw();
 
             // Clear old result message
             resultDiv.textContent = '';
             resultDiv.style.color = '#e74c3c'; // Reset result text color
 
-            // Enable/disable buttons based on state
+            // Enable/disable buttons based on the new state
             const canPlay = playerBalance > 0;
             spinButton.disabled = !canPlay || isSpinning; // isSpinning should be false here
             betAmountInput.disabled = !canPlay || isSpinning;
@@ -591,9 +602,8 @@
             // Close message box if open
             messageBoxOverlay.style.display = 'none';
 
-            console.log("Game reset to defaults!"); // Log for debugging
+            console.log("Game reset (Balance/History/Bet). Kept Win Rate."); // Updated log
         }
-
 
         // --- Spin and Bet Logic ---
         // Wheel spinning animation
