@@ -3,19 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vòng Quay May Mắn - English Comments</title>
+    <title>Vòng Quay May Mắn - Refactored</title>
     <!-- Import Roboto font with Vietnamese support -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        /* CSS Variables for easier theming */
+        :root {
+            --bg-color: #f0e8c0;
+            --text-color: #5a3a24;
+            --primary-accent: #8b5a2b;
+            --primary-accent-dark: #5a3a24;
+            --secondary-accent: #c0392b;
+            --secondary-accent-dark: #a03021;
+            --win-color: #2ecc71;
+            --lose-color: #e67e22;
+            --win-text-color: #27ae60;
+            --lose-text-color: #c0392b; /* Same as secondary accent */
+            --disabled-bg: #cccccc;
+            --disabled-text: #666666;
+            --disabled-border: #999999;
+            --font-family: 'Roboto', sans-serif;
+            --border-radius: 10px;
+            --button-padding: 15px 25px;
+            --control-border-color: var(--primary-accent);
+            --control-bg-color: rgba(139, 90, 43, 0.1);
+            --history-bg-color: rgba(139, 90, 43, 0.05);
+            --input-bg-color: #fffbf0;
+        }
+
         body {
             display: flex;
             justify-content: flex-start; /* Align top */
             align-items: center;
             min-height: 100vh;
-            background-color: #f0e8c0;
-            /* Use Roboto font */
-            font-family: 'Roboto', sans-serif;
-            color: #5a3a24;
+            background-color: var(--bg-color);
+            font-family: var(--font-family);
+            color: var(--text-color);
             flex-direction: column;
             text-align: center;
             padding: 20px;
@@ -32,7 +55,7 @@
 
         .game-container {
             position: relative;
-            width: 300px; /* Slightly smaller wheel */
+            width: 300px;
             height: 300px;
             margin-bottom: 15px;
             display: flex;
@@ -50,14 +73,14 @@
 
         .pointer {
             position: absolute;
-            top: -10px;
+            top: -10px; /* Position above the wheel */
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
             border-left: 15px solid transparent;
             border-right: 15px solid transparent;
-            border-top: 30px solid #c0392b;
+            border-top: 30px solid var(--secondary-accent); /* Use CSS var */
             z-index: 10;
         }
 
@@ -68,71 +91,77 @@
         }
 
         button {
-            /* Inherit font from body */
             font-family: inherit;
-            padding: 15px 25px;
+            padding: var(--button-padding);
             font-size: 14px;
             cursor: pointer;
-            background-color: #8b5a2b;
-            color: #f0e8c0;
-            border: 4px solid #5a3a24;
-            border-radius: 10px;
+            background-color: var(--primary-accent);
+            color: var(--bg-color);
+            border: 4px solid var(--primary-accent-dark);
+            border-radius: var(--border-radius);
             text-transform: uppercase;
-            transition: background-color 0.3s ease, transform 0.1s ease;
-            box-shadow: 0 5px #5a3a24;
-            font-weight: bold; /* Make text bolder */
+            transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.1s ease;
+            box-shadow: 0 5px var(--primary-accent-dark);
+            font-weight: bold;
         }
-        #resetButton {
-             background-color: #c0392b;
-             box-shadow: 0 5px #a03021;
-             border-color: #a03021;
-        }
-         #resetButton:hover {
-             background-color: #d65040;
-         }
-          #resetButton:active {
-             background-color: #a03021;
-             box-shadow: 0 2px #7c251a;
-             transform: translateY(3px);
-         }
-
         button:hover {
-            background-color: #a07b4e;
+            background-color: #a07b4e; /* Slightly lighter brown */
         }
         button:active {
-            background-color: #7c4d21;
-            box-shadow: 0 2px #5a3a24;
+            background-color: #7c4d21; /* Slightly darker brown */
+            box-shadow: 0 2px var(--primary-accent-dark);
             transform: translateY(3px);
         }
         button:disabled {
-            background-color: #cccccc;
-            color: #666666;
+            background-color: var(--disabled-bg);
+            color: var(--disabled-text);
             cursor: not-allowed;
-            box-shadow: 0 5px #999999;
-            border-color: #999999;
+            box-shadow: 0 5px var(--disabled-border);
+            border-color: var(--disabled-border);
+            transform: none; /* Prevent movement when disabled */
         }
+
+        #resetButton {
+             background-color: var(--secondary-accent);
+             box-shadow: 0 5px var(--secondary-accent-dark);
+             border-color: var(--secondary-accent-dark);
+        }
+         #resetButton:hover {
+             background-color: #d65040; /* Slightly lighter red */
+         }
+          #resetButton:active {
+             background-color: var(--secondary-accent-dark);
+             box-shadow: 0 2px #7c251a; /* Darker red shadow */
+             transform: translateY(3px);
+         }
+         #resetButton:disabled { /* Ensure reset button disabled style matches */
+             background-color: var(--disabled-bg);
+             box-shadow: 0 5px var(--disabled-border);
+             border-color: var(--disabled-border);
+         }
 
         #result {
             margin-top: 15px;
             font-size: 16px;
             font-weight: bold;
-            min-height: 20px;
-            color: #e74c3c;
+            min-height: 20px; /* Prevent layout shift */
+            color: var(--lose-text-color); /* Default color (loss) */
         }
 
         .controls, .betting-controls {
             margin-top: 15px;
             padding: 12px;
-            background-color: rgba(139, 90, 43, 0.1);
-            border: 3px solid #8b5a2b;
+            background-color: var(--control-bg-color);
+            border: 3px solid var(--control-border-color);
             border-radius: 8px;
             width: 90%;
             max-width: 400px;
+            box-sizing: border-box; /* Include padding/border in width */
         }
         .controls label, .betting-controls label {
             display: block;
             margin-bottom: 8px;
-            font-size: 14px; /* Increase label font size */
+            font-size: 14px;
         }
         .controls input[type="range"] {
             width: 75%;
@@ -141,9 +170,9 @@
             vertical-align: middle;
         }
         .controls span {
-            font-size: 14px; /* Increase % value font size */
+            font-size: 14px;
             font-weight: bold;
-            color: #c0392b;
+            color: var(--secondary-accent); /* Use CSS var */
             min-width: 35px;
             display: inline-block;
             text-align: right;
@@ -151,90 +180,110 @@
             vertical-align: middle;
         }
          .balance-info {
-             font-size: 16px; /* Increase font size */
+             font-size: 16px;
              margin-bottom: 10px;
-             color: #34495e;
+             color: #34495e; /* Dark blue-grey for balance label */
          }
          .balance-info span {
              font-weight: bold;
-             color: #27ae60;
+             color: var(--win-text-color); /* Green for balance amount */
          }
          .betting-controls input[type="number"] {
-            /* Inherit font from body */
             font-family: inherit;
             font-size: 14px;
             padding: 8px;
-            border: 2px solid #8b5a2b;
+            border: 2px solid var(--control-border-color);
             border-radius: 5px;
-            background-color: #fffbf0;
-            color: #5a3a24;
+            background-color: var(--input-bg-color);
+            color: var(--text-color);
             width: 100px;
             text-align: right;
             margin-left: 10px;
          }
+         /* Hide number input spinners */
          .betting-controls input[type=number]::-webkit-inner-spin-button,
          .betting-controls input[type=number]::-webkit-outer-spin-button {
             -webkit-appearance: none; margin: 0;
          }
          .betting-controls input[type=number] {
-            -moz-appearance: textfield;
+            -moz-appearance: textfield; /* Firefox */
          }
 
         /* History Log Styling */
         .history-section {
             margin-top: 25px;
             width: 90%;
-            max-width: 450px; /* Limit width */
-            background-color: rgba(139, 90, 43, 0.05); /* Lighter background */
-            border: 3px solid #8b5a2b;
+            max-width: 450px;
+            background-color: var(--history-bg-color);
+            border: 3px solid var(--control-border-color);
             border-radius: 8px;
             padding: 15px;
             box-sizing: border-box;
         }
         .history-section h2 {
-            font-size: 16px; /* Increase font size */
+            font-size: 16px;
             margin-bottom: 10px;
-            color: #5a3a24;
-            border-bottom: 2px solid #8b5a2b;
+            color: var(--text-color);
+            border-bottom: 2px solid var(--control-border-color);
             padding-bottom: 5px;
         }
         #historyLog {
             list-style: none; padding: 0; margin: 0;
-            max-height: 150px; overflow-y: auto; /* Add scrollbar when needed */
-            text-align: left; /* Align history text left */
-            font-size: 13px; /* Increase history font size */
-            line-height: 1.6; /* Increase line spacing */
+            max-height: 150px; overflow-y: auto;
+            text-align: left;
+            font-size: 13px;
+            line-height: 1.6;
         }
-        #historyLog li {
+        .history-entry { /* Style for each list item */
             padding: 5px 0;
-            border-bottom: 1px dashed rgba(90, 58, 36, 0.3); /* Faint dashed line separator */
+            border-bottom: 1px dashed rgba(90, 58, 36, 0.3);
         }
-        #historyLog li:last-child { border-bottom: none; } /* Remove border for last item */
-        .history-win { color: #27ae60; font-weight: bold; } /* Green for wins */
-        .history-loss { color: #c0392b; } /* Red for losses */
+        .history-entry:last-child { border-bottom: none; }
+
+        /* Classes for win/loss text within history */
+        .history-win { color: var(--win-text-color); font-weight: bold; }
+        .history-loss { color: var(--lose-text-color); }
+
+        /* Classes for result color (Green/Orange) within history */
+        .history-entry strong.win-color { color: var(--win-color); }
+        .history-entry strong.lose-color { color: var(--lose-color); }
 
 
         /* Message Box Styling */
         .message-box-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.6); display: none; /* Hidden by default */
+            background-color: rgba(0, 0, 0, 0.6);
+            display: none; /* Hidden by default */
+            opacity: 0; /* Start transparent */
             justify-content: center; align-items: center; z-index: 1000;
+            transition: opacity 0.3s ease-in-out; /* Fade transition */
+        }
+        /* Class to show the message box */
+        .message-box-overlay.visible {
+            display: flex;
+            opacity: 1;
         }
         .message-box {
-            background-color: #f0e8c0; padding: 30px; border-radius: 10px;
-            border: 5px solid #5a3a24; box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+            background-color: var(--bg-color); padding: 30px; border-radius: 10px;
+            border: 5px solid var(--primary-accent-dark);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
             text-align: center; max-width: 80%;
         }
-        .message-box p { margin-bottom: 20px; font-size: 16px; color: #5a3a24; }
+        .message-box p { margin-bottom: 20px; font-size: 16px; color: var(--text-color); }
         .message-box button {
-            /* Inherit font from body */
+            /* Style similar to main buttons but maybe smaller */
             font-family: inherit;
             padding: 10px 20px; font-size: 14px;
-            cursor: pointer; background-color: #8b5a2b; color: #f0e8c0;
-            border: 3px solid #5a3a24; border-radius: 8px; box-shadow: 0 4px #5a3a24;
-            font-weight: bold; /* Make text bolder */
+            cursor: pointer; background-color: var(--primary-accent); color: var(--bg-color);
+            border: 3px solid var(--primary-accent-dark); border-radius: 8px;
+            box-shadow: 0 4px var(--primary-accent-dark);
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.1s ease;
         }
-         .message-box button:active { box-shadow: 0 2px #5a3a24; transform: translateY(2px); }
+         .message-box button:active {
+             box-shadow: 0 2px var(--primary-accent-dark);
+             transform: translateY(2px);
+         }
     </style>
 </head>
 <body>
@@ -257,7 +306,8 @@
 
         <div class="betting-controls">
              <label for="betAmount">Đặt cược:</label>
-             <input type="number" id="betAmount" min="1" value="10"> G
+             <!-- Changed input type to text for better BigInt handling, validation in JS -->
+             <input type="text" id="betAmount" inputmode="numeric" pattern="[0-9]*" value="10"> G
         </div>
 
         <div class="action-buttons">
@@ -271,10 +321,11 @@
     <div class="history-section">
         <h2>Lịch sử quay</h2>
         <ul id="historyLog">
+            <!-- History items will be added here by JavaScript -->
             </ul>
     </div>
 
-
+    <!-- Message Box Structure -->
     <div id="messageBoxOverlay" class="message-box-overlay">
         <div class="message-box">
             <p id="messageText"></p>
@@ -282,580 +333,9 @@
         </div>
     </div>
 
-    <script>
-                // Get DOM elements
-                const canvas = document.getElementById('wheelCanvas');
-        const ctx = canvas.getContext('2d');
-        const spinButton = document.getElementById('spinButton');
-        const resetButton = document.getElementById('resetButton');
-        const resultDiv = document.getElementById('result');
-        const winRateSlider = document.getElementById('winRateSlider');
-        const winRateValueSpan = document.getElementById('winRateValue');
-        const playerBalanceSpan = document.getElementById('playerBalance');
-        const betAmountInput = document.getElementById('betAmount');
-        const historyLog = document.getElementById('historyLog'); // Get history ul element
-        const messageBoxOverlay = document.getElementById('messageBoxOverlay');
-        const messageText = document.getElementById('messageText');
-        const messageCloseButton = document.getElementById('messageCloseButton');
-
-        // --- Game Settings ---
-        // BigInt Change: Use 'n' suffix for BigInt literals
-        const initialBalance = 100n; // Initial balance as BigInt
-        const defaultBet = 10n;      // Default bet amount as BigInt
-        const defaultWinRate = 70;  // Default win rate (%) - This remains a Number
-        const maxHistory = 10;     // Maximum history entries to display
-        const localStorageKey = 'wheelGameState_BigInt'; // Key for local storage (use a new key to avoid conflicts)
-
-        // BigInt Change: Initialize balance and bet as BigInt
-        let playerBalance = initialBalance;
-        let currentBet = 0n;          // Bet amount for the current spin as BigInt
-        let spinHistory = [];       // Array to store history (will contain BigInts as strings)
-
-        // Initialize segments based on defaultWinRate (will be updated by loadGameState/updateWeights)
-        let segments = [
-            { color: '#2ecc71', label: 'Xanh lá', weight: defaultWinRate }, // Weight remains Number
-            { color: '#e67e22', label: 'Cam',    weight: 100 - defaultWinRate } // Weight remains Number
-        ];
-        // ------------------------
-
-        // Variables for the wheel (remain Numbers)
-        let totalWeight = segments.reduce((sum, segment) => sum + segment.weight, 0);
-        const radius = canvas.width / 2 - 10;
-        const center = canvas.width / 2;
-
-        // Variables for animation (remain Numbers)
-        let currentAngle = 0;
-        let spinAngleStart = 0;
-        let spinTime = 0;
-        let spinTimeTotal = 0;
-        let isSpinning = false;
-
-        // --- Local Storage Functions ---
-        function saveGameState() {
-            try {
-                // BigInt Change: Parse bet amount as BigInt, handle errors
-                let currentBetValueString = '0'; // Default to '0' string
-                try {
-                    // Ensure the value is a valid integer string before creating BigInt
-                    const betInputStr = betAmountInput.value.trim();
-                    if (/^\d+$/.test(betInputStr)) {
-                         currentBetValueString = BigInt(betInputStr).toString();
-                    } else {
-                        // If input is invalid (e.g., empty, non-numeric), save '0' or a default
-                        console.warn("Invalid bet input during save, saving '0'.");
-                        currentBetValueString = '0';
-                    }
-                } catch (e) {
-                    console.error("Error parsing bet amount to BigInt during save:", e);
-                    currentBetValueString = '0'; // Fallback
-                }
-
-                const gameState = {
-                    // BigInt Change: Convert BigInts to strings for JSON
-                    balance: playerBalance.toString(),
-                    winRate: parseInt(winRateSlider.value), // winRate is still Number
-                    // BigInt Change: Ensure history entries store BigInts as strings
-                    history: spinHistory.map(entry => ({
-                        ...entry, // Keep result, color
-                        bet: entry.bet.toString(),
-                        outcome: entry.outcome.toString(),
-                        balanceAfter: entry.balanceAfter.toString()
-                    })),
-                    lastBet: currentBetValueString // Save the bet amount string
-                };
-                localStorage.setItem(localStorageKey, JSON.stringify(gameState));
-                console.log("Game state saved (BigInt).");
-            } catch (error) {
-                console.error("Error saving game state to localStorage:", error);
-                showMessage("Không thể lưu trạng thái trò chơi.");
-            }
-        }
-
-        function loadGameState() {
-            // BigInt Change: Default bet is BigInt
-            let loadedBetAmount = defaultBet;
-            try {
-                const savedStateJSON = localStorage.getItem(localStorageKey);
-                if (savedStateJSON) {
-                    const savedState = JSON.parse(savedStateJSON);
-
-                    // BigInt Change: Parse balance string back to BigInt
-                    playerBalance = savedState.balance !== undefined ? BigInt(savedState.balance) : initialBalance;
-
-                    // BigInt Change: Parse history strings back to BigInts
-                    spinHistory = Array.isArray(savedState.history)
-                        ? savedState.history.map(entry => ({
-                            ...entry, // Keep result, color
-                            bet: BigInt(entry.bet || '0'), // Default to 0n if missing/invalid
-                            outcome: BigInt(entry.outcome || '0'),
-                            balanceAfter: BigInt(entry.balanceAfter || '0')
-                          }))
-                        : [];
-
-                    // Set slider value (still Number)
-                    winRateSlider.value = savedState.winRate !== undefined ? savedState.winRate : defaultWinRate;
-
-                    // BigInt Change: Load last bet string and parse to BigInt
-                    if (savedState.lastBet !== undefined) {
-                        try {
-                            loadedBetAmount = BigInt(savedState.lastBet);
-                        } catch (e) {
-                            console.warn("Could not parse saved lastBet, using default:", savedState.lastBet);
-                            loadedBetAmount = defaultBet; // Fallback if parsing fails
-                        }
-                    }
-
-                    console.log("Game state loaded (BigInt).");
-                } else {
-                    // No saved state, use defaults
-                    playerBalance = initialBalance;
-                    winRateSlider.value = defaultWinRate;
-                    spinHistory = [];
-                    loadedBetAmount = defaultBet;
-                    console.log("No saved state found, using defaults (BigInt).");
-                }
-            } catch (error) {
-                console.error("Error loading game state from localStorage:", error);
-                // Fallback to defaults if loading fails
-                playerBalance = initialBalance;
-                winRateSlider.value = defaultWinRate;
-                spinHistory = [];
-                loadedBetAmount = defaultBet;
-                // Optionally clear corrupted data
-                // localStorage.removeItem(localStorageKey);
-                showMessage("Lỗi khi tải trạng thái đã lưu, bắt đầu lại.");
-            }
-
-            // --- Initial UI Setup (needs to happen after loading state) ---
-            updateBalanceDisplay();
-            updateWeightsAndRedraw(); // Updates segments based on slider, calculates totalWeight, draws wheel
-            updateHistoryDisplay();
-
-            // --- MODIFIED: Set initial bet amount using loaded/validated BigInt value ---
-            let finalBetAmount = loadedBetAmount;
-            // BigInt Change: Use BigInt comparisons
-            if (playerBalance <= 0n) {
-                finalBetAmount = 0n; // Can't bet if no money
-            } else if (finalBetAmount <= 0n) {
-                 // If saved bet was 0 or invalid, use default or balance, whichever is smaller
-                 finalBetAmount = defaultBet < playerBalance ? defaultBet : playerBalance;
-            } else if (finalBetAmount > playerBalance) {
-                finalBetAmount = playerBalance; // If saved bet exceeds current balance, cap it
-            }
-            // BigInt Change: Convert BigInt to string for input value
-            betAmountInput.value = finalBetAmount.toString();
-            // --------------------------------------------------------------------
-
-            // Enable/disable buttons based on loaded state
-            // BigInt Change: Compare balance to 0n
-            const canPlay = playerBalance > 0n;
-            spinButton.disabled = !canPlay || isSpinning;
-            betAmountInput.disabled = !canPlay || isSpinning;
-            winRateSlider.disabled = isSpinning; // Should not be spinning on load
-
-            // Clear any leftover result message
-            resultDiv.textContent = '';
-            resultDiv.style.color = '#e74c3c';
-
-            // Ensure message box is hidden on load
-            messageBoxOverlay.style.display = 'none';
-            isSpinning = false; // Ensure spinning state is false on load
-        }
-
-
-        // --- UI Update Functions ---
-        // Update balance display
-        function updateBalanceDisplay() {
-            // BigInt Change: Convert BigInt to string for display
-            // Formatting Change: Use toLocaleString() for readability
-            try {
-                playerBalanceSpan.textContent = playerBalance.toLocaleString(); // Format with separators
-            } catch (e) {
-                console.error("Error formatting balance:", e);
-                playerBalanceSpan.textContent = playerBalance.toString(); // Fallback
-            }
-        }
-
-        // Update segment weights and redraw the wheel based on the slider (No BigInt changes needed here)
-        function updateWeightsAndRedraw() {
-            const greenWeight = parseInt(winRateSlider.value);
-            const orangeWeight = 100 - greenWeight;
-            segments[0].weight = greenWeight;
-            segments[1].weight = orangeWeight;
-            totalWeight = greenWeight + orangeWeight; // Always 100
-            winRateValueSpan.textContent = `${greenWeight}%`;
-            drawWheel();
-        }
-
-        // Draw the wheel on the canvas (No BigInt changes needed here)
-        function drawWheel() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.strokeStyle = '#5a3a24';
-            ctx.lineWidth = 5;
-            ctx.font = 'bold 12px Roboto';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-
-            let startAngle = currentAngle;
-
-            if (totalWeight <= 0) {
-                console.warn("Total weight is zero or negative, cannot draw wheel segments accurately.");
-                ctx.beginPath();
-                ctx.arc(center, center, radius, 0, 2 * Math.PI, false);
-                ctx.stroke();
-                return;
-            }
-
-            segments.forEach((segment) => {
-                if (segment.weight > 0) {
-                    const segmentArcSize = (segment.weight / totalWeight) * (2 * Math.PI);
-                    const endAngle = startAngle + segmentArcSize;
-                    ctx.fillStyle = segment.color;
-                    ctx.beginPath();
-                    ctx.arc(center, center, radius, startAngle, endAngle, false);
-                    ctx.arc(center, center, radius * 0.3, endAngle, startAngle, true);
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.stroke();
-                    startAngle = endAngle;
-                 }
-            });
-
-            ctx.fillStyle = '#8b5a2b';
-            ctx.beginPath();
-            ctx.arc(center, center, radius * 0.3, 0, Math.PI * 2, false);
-            ctx.fill();
-            ctx.stroke();
-        }
-
-        // --- History Display Function ---
-        // Update the content in the history section
-        function updateHistoryDisplay() {
-            historyLog.innerHTML = '';
-            const historyToDisplay = Array.isArray(spinHistory) ? spinHistory.slice(0, maxHistory) : [];
-            historyToDisplay.forEach(entry => {
-                if (typeof entry !== 'object' || entry === null || !entry.result) return;
-
-                const li = document.createElement('li');
-                let outcomeText = '';
-                let outcomeClass = '';
-                // BigInt Change: Use BigInt comparisons and toString()
-                const outcome = entry.outcome || 0n;
-                const bet = entry.bet || 0n;
-                // Formatting Change: Format balanceAfter using toLocaleString()
-                const balanceAfter = entry.balanceAfter !== undefined
-                                     ? (entry.balanceAfter).toLocaleString()
-                                     : 'N/A';
-
-                // BigInt Change: Compare outcome to 0n
-                if (outcome > 0n) {
-                    // Formatting Change: Format outcome using toLocaleString()
-                    outcomeText = `Thắng ${outcome.toLocaleString()} G`;
-                    outcomeClass = 'history-win';
-                } else {
-                    // Formatting Change: Format negative outcome using toLocaleString()
-                    // Display positive loss amount
-                    outcomeText = `Thua ${(-outcome).toLocaleString()} G`;
-                    outcomeClass = 'history-loss';
-                }
-                // Formatting Change: Format bet using toLocaleString()
-                li.innerHTML = `Cược ${bet.toLocaleString()} G, trúng <strong style="color:${entry.color || '#000'};">${entry.result}</strong>. <span class="${outcomeClass}">${outcomeText}</span>. Còn: ${balanceAfter} G`;
-                historyLog.appendChild(li);
-            });
-        }
-
-
-        // --- Utility Functions --- (No BigInt changes needed here)
-        function showMessage(message) {
-            messageText.textContent = message;
-            messageBoxOverlay.style.display = 'flex';
-        }
-        messageCloseButton.onclick = () => {
-            messageBoxOverlay.style.display = 'none';
-        };
-        messageBoxOverlay.onclick = (event) => {
-             if (event.target === messageBoxOverlay) {
-                messageBoxOverlay.style.display = 'none';
-             }
-        }
-
-        // --- Reset Logic ---
-        function resetGame() {
-            try {
-                localStorage.removeItem(localStorageKey);
-                console.log("Cleared saved game state (BigInt).");
-            } catch (error) {
-                console.error("Error removing game state from localStorage:", error);
-            }
-
-            // BigInt Change: Reset balance to initial BigInt
-            playerBalance = initialBalance;
-            spinHistory = [];
-
-            // --- Keep current win rate ---
-
-            // --- Reset bet amount to default (validated against new BigInt balance) ---
-            // BigInt Change: Use BigInt comparisons and values
-            let resetBetAmount = defaultBet;
-            if (playerBalance <= 0n) {
-                resetBetAmount = 0n;
-            } else {
-                resetBetAmount = defaultBet < playerBalance ? defaultBet : playerBalance;
-            }
-            // BigInt Change: Convert BigInt to string for input value
-            betAmountInput.value = resetBetAmount.toString();
-            // -----------------------------------------------------------------
-
-            updateBalanceDisplay();
-            updateHistoryDisplay();
-            updateWeightsAndRedraw();
-
-            resultDiv.textContent = '';
-            resultDiv.style.color = '#e74c3c';
-
-            // BigInt Change: Compare balance to 0n
-            const canPlay = playerBalance > 0n;
-            spinButton.disabled = !canPlay || isSpinning;
-            betAmountInput.disabled = !canPlay || isSpinning;
-            winRateSlider.disabled = isSpinning;
-
-            isSpinning = false;
-            messageBoxOverlay.style.display = 'none';
-
-            console.log("Game reset (BigInt Balance/History/Bet). Kept Win Rate.");
-        }
-
-        // --- Spin and Bet Logic ---
-        // Wheel spinning animation (No BigInt changes needed here)
-        function rotateWheel() {
-            spinTime += 30;
-            if (spinTime >= spinTimeTotal) {
-                stopRotateWheel();
-                return;
-            }
-            const spinAngle = spinAngleStart * Math.sin(Math.PI / 2 - (spinTime / spinTimeTotal) * (Math.PI / 2));
-            currentAngle += (spinAngle * Math.PI / 180);
-            drawWheel();
-            requestAnimationFrame(rotateWheel);
-        }
-
-        // Stop the wheel and process the result
-        function stopRotateWheel() {
-            isSpinning = false;
-
-            // Calculations for finding the winning segment remain the same (use Numbers)
-            const finalAngle = currentAngle % (2 * Math.PI);
-            const pointerAngle = (3 * Math.PI / 2);
-            let relativeAngle = pointerAngle - finalAngle;
-            if (relativeAngle < 0) {
-                relativeAngle += (2 * Math.PI);
-            }
-
-            let cumulativeAngle = 0;
-            let winningSegment = null;
-
-            if (totalWeight <= 0) {
-                 resultDiv.textContent = "Lỗi!";
-                 // BigInt Change: Compare balance to 0n
-                 const canPlay = playerBalance > 0n;
-                 spinButton.disabled = !canPlay;
-                 winRateSlider.disabled = false;
-                 betAmountInput.disabled = !canPlay;
-                 return;
-            }
-
-            for (const segment of segments) {
-                 if (segment.weight > 0) {
-                    const segmentArcSize = (segment.weight / totalWeight) * (2 * Math.PI);
-                    if (relativeAngle <= cumulativeAngle + segmentArcSize + 1e-9) {
-                        winningSegment = segment;
-                        break;
-                    }
-                    cumulativeAngle += segmentArcSize;
-                 }
-            }
-             if (!winningSegment) {
-                 console.error("Could not determine winning segment!");
-                 winningSegment = segments.find(s => s.weight > 0) || segments[0];
-             }
-
-            // Process win/loss result and update balance
-            // BigInt Change: Use BigInt for outcomeAmount and calculations
-            let outcomeAmount = 0n;
-            if (winningSegment.label === 'Xanh lá') {
-                // BigInt Change: Calculate winnings using BigInt multiplication
-                const winnings = currentBet * 2n; // Multiply BigInt bet by BigInt 2
-                playerBalance += winnings;     // Add BigInt winnings
-                outcomeAmount = currentBet;     // Net gain is the BigInt bet amount
-                // Formatting Change: Use toString() for displaying winnings with formatting
-                resultDiv.textContent = `Thắng! Bạn nhận được ${winnings.toLocaleString()} G!`;
-                resultDiv.style.color = '#27ae60';
-            } else {
-                // BigInt Change: Loss is the negative BigInt bet amount
-                outcomeAmount = -currentBet;
-                // Balance was already deducted before spin
-                // Formatting Change: Use toString() for displaying loss amount with formatting
-                resultDiv.textContent = `Thua! Bạn mất ${currentBet.toLocaleString()} G.`;
-                resultDiv.style.color = '#e74c3c';
-            }
-
-            updateBalanceDisplay(); // Update balance display BEFORE saving history
-
-            // Add result to history (using BigInts)
-            spinHistory.unshift({
-                result: winningSegment.label,
-                color: winningSegment.color,
-                bet: currentBet, // Store BigInt
-                outcome: outcomeAmount, // Store BigInt
-                balanceAfter: playerBalance // Store BigInt
-            });
-            if (spinHistory.length > maxHistory) {
-                spinHistory.pop();
-            }
-            updateHistoryDisplay(); // Update history display on UI
-
-            // --- SAVE GAME STATE AFTER SPIN ---
-            saveGameState(); // Saves BigInts as strings
-            // ---------------------------------
-
-            // Re-enable controls (unless out of money)
-            // BigInt Change: Compare balance to 0n
-            const canPlay = playerBalance > 0n;
-            spinButton.disabled = !canPlay;
-            winRateSlider.disabled = false;
-            betAmountInput.disabled = !canPlay;
-
-            // Check if out of money after updating history and saving
-            // BigInt Change: Compare balance to 0n
-            if (playerBalance <= 0n) {
-                showMessage("Bạn đã hết vàng! Nhấn 'Chơi lại' để bắt đầu lại.");
-            }
-        }
-
-        // --- Event Listeners ---
-        // Spin button click event
-        spinButton.addEventListener('click', () => {
-            if (isSpinning) return;
-
-            // BigInt Change: Read and validate the bet amount as BigInt
-            let betValue;
-            try {
-                // Trim whitespace before parsing
-                const betInputStr = betAmountInput.value.trim();
-                // Use regex to ensure it's only digits before parsing
-                if (!/^\d+$/.test(betInputStr)) {
-                    throw new Error("Invalid characters in bet amount.");
-                }
-                betValue = BigInt(betInputStr);
-            } catch (e) {
-                showMessage("Vui lòng nhập số tiền cược hợp lệ (chỉ gồm số).");
-                console.error("Bet parsing error:", e);
-                return;
-            }
-
-            // BigInt Change: Use BigInt comparisons
-            if (betValue <= 0n) {
-                showMessage("Vui lòng nhập số tiền cược lớn hơn 0.");
-                return;
-            }
-            if (betValue > playerBalance) {
-                // Formatting Change: Use toLocaleString() for display in the message
-                showMessage(`Bạn không đủ vàng! Vàng hiện tại: ${playerBalance.toLocaleString()} G.`);
-                return;
-            }
-             // Check if spinning is possible (valid segments exist)
-             if (totalWeight <= 0 || segments.every(s => s.weight <= 0)) {
-                showMessage("Không thể quay vì không có ô nào có tỉ lệ.");
-                return;
-            }
-
-            // If bet is valid, start the spin
-            // BigInt Change: Store BigInt bet
-            currentBet = betValue;
-            playerBalance -= currentBet; // Deduct BigInt bet
-            updateBalanceDisplay();
-
-            isSpinning = true;
-            spinButton.disabled = true;
-            winRateSlider.disabled = true;
-            betAmountInput.disabled = true;
-            resultDiv.textContent = 'Đang quay...';
-            resultDiv.style.color = '#5a3a24';
-
-            // Spin parameters remain Numbers
-            spinAngleStart = Math.random() * 10 + 10;
-            spinTime = 0;
-            spinTimeTotal = Math.random() * 3000 + 4000;
-
-            rotateWheel();
-        });
-
-        // Reset button click event
-        resetButton.addEventListener('click', resetGame);
-
-        // Win rate slider input event (No BigInt changes needed here, but save state)
-        winRateSlider.addEventListener('input', () => {
-            if (!isSpinning) {
-                updateWeightsAndRedraw();
-                // --- SAVE GAME STATE AFTER SLIDER CHANGE ---
-                saveGameState(); // Save potentially changed winRate
-                // -----------------------------------------
-            }
-        });
-
-        // Bet amount input event
-        betAmountInput.addEventListener('input', () => {
-             if (isSpinning) return; // Don't allow editing bet while spinning
-
-             // BigInt Change: Validate input against BigInt balance
-             try {
-                 // Trim and check if empty or non-numeric before parsing
-                 const betInputStr = betAmountInput.value.trim();
-                 if (betInputStr === '') {
-                     // Handle empty input - maybe set to '1' or '0' depending on balance?
-                     // Let's default to '1' if they have balance, '0' otherwise.
-                     betAmountInput.value = playerBalance > 0n ? '1' : '0';
-                     return; // Exit early after setting default
-                 }
-                 if (!/^\d+$/.test(betInputStr)) {
-                     // If invalid characters are typed, maybe revert or show error?
-                     // For now, let's just ignore the invalid input (it won't parse later)
-                     // Or maybe reset to a valid value? Let's reset to 1 or balance.
-                     console.warn("Invalid characters in bet input.");
-                     betAmountInput.value = playerBalance > 0n ? '1' : '0'; // Reset
-                     return;
-                 }
-
-                 const betValue = BigInt(betInputStr);
-
-                 // BigInt Change: Use BigInt comparisons
-                 if (betValue < 1n && playerBalance > 0n) {
-                     betAmountInput.value = '1'; // Min bet is 1 if they have money
-                 } else if (betValue > playerBalance && playerBalance > 0n) {
-                     betAmountInput.value = playerBalance.toString(); // Limit bet to current balance
-                 } else if (playerBalance <= 0n) {
-                      betAmountInput.value = '0'; // Can't bet if no money
-                 }
-                 // If betValue is valid and within range, no change needed to input.value
-             } catch (e) {
-                 // Handle potential BigInt parsing errors if regex fails somehow
-                 console.error("Error processing bet input:", e);
-                 // Reset to a safe value
-                 betAmountInput.value = playerBalance > 0n ? '1' : '0';
-             }
-             // Note: We don't save state on every bet input change, only on spin/slider change/reset.
-        });
-
-
-        // Initialize game on page load
-        window.onload = () => {
-             // Load state from localStorage or set defaults, and update UI
-             loadGameState();
-        };
-
-    </script>
-
-
+    <!-- Link the external JavaScript file -->
+    <!-- 'defer' ensures script runs after HTML is parsed but before DOMContentLoaded -->
+    <script src="script.js" defer></script>
 
 </body>
 </html>
