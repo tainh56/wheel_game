@@ -1,7 +1,15 @@
+/**
+ * script.js
+ *
+ * This script powers the interactive wheel spinning game.
+ * It handles game logic, UI updates, local storage for persistence,
+ * and the wheel animation.
+ */
 (function() {
-    'use strict'; // Enable strict mode
+    'use strict'; // Enable strict mode to catch common coding errors
 
     // --- Constants ---
+    // Define constants for frequently used DOM element IDs and game parameters.
     const WHEEL_CANVAS_ID = 'wheelCanvas';
     const SPIN_BUTTON_ID = 'spinButton';
     const RESET_BUTTON_ID = 'resetButton';
@@ -45,6 +53,7 @@
     const EASE_OUT_FACTOR = Math.PI / 2; // For sine easing
 
     // --- DOM Elements ---
+    // Get references to key HTML elements using their defined IDs.
     const canvas = document.getElementById(WHEEL_CANVAS_ID);
     const spinButton = document.getElementById(SPIN_BUTTON_ID);
     const resetButton = document.getElementById(RESET_BUTTON_ID);
@@ -58,39 +67,45 @@
     const messageText = document.getElementById(MESSAGE_TEXT_ID);
     const messageCloseButton = document.getElementById(MESSAGE_CLOSE_BUTTON_ID);
 
-    // Ensure canvas context is available
+    // Ensure canvas element and its 2D rendering context are available.
+    // If not, log an error, show a message (if possible), and stop script execution.
     if (!canvas || typeof canvas.getContext !== 'function') {
         console.error("Canvas element not found or context not supported.");
         // Attempt to show message, but it might fail if elements aren't ready
         try { showMessage("Lỗi: Không thể khởi tạo khu vực vòng quay."); } catch(e) {}
         return; // Stop script execution if canvas fails
     }
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d'); // Get the 2D rendering context for the canvas.
 
     // --- Game Settings ---
+    // Define the segments of the wheel, including their color, label, and initial weight.
     let segments = [
         { color: WIN_COLOR, label: 'Xanh lá', weight: DEFAULT_WIN_RATE },
         { color: LOSE_COLOR, label: 'Cam', weight: 100 - DEFAULT_WIN_RATE }
     ];
 
     // --- State Variables ---
-    let playerBalance = INITIAL_BALANCE;
-    let currentBet = 0n;
-    let spinHistory = [];
+    // Variables to track the current state of the game.
+    let playerBalance = INITIAL_BALANCE; // The player's current balance, using BigInt for large numbers.
+    let currentBet = 0n; // The amount the player has bet on the current spin, using BigInt.
+    let spinHistory = []; // An array to store the results of past spins.
+    // Calculate the total weight of all segments, used for determining segment proportions.
     let totalWeight = segments.reduce((sum, segment) => sum + segment.weight, 0);
-    const radius = canvas.width / 2 - 10; // Outer radius
-    const center = canvas.width / 2;
+    const radius = canvas.width / 2 - 10; // The outer radius of the wheel, leaving a small margin.
+    const center = canvas.width / 2; // The center coordinate (x and y) of the canvas.
 
     // Animation State
-    let currentAngle = 0; // In radians
-    let spinAngleStartSpeed = 0; // Initial angular speed factor
-    let spinTime = 0; // Current timestamp from performance.now() during animation
-    let spinStartTime = 0; // Timestamp when the spin started
-    let spinTimeTotal = 0; // Total duration for current spin
-    let isSpinning = false;
-    let animationFrameId = null; // To store requestAnimationFrame ID
+    // Variables to manage the wheel spinning animation.
+    let currentAngle = 0; // The current rotation angle of the wheel in radians.
+    let spinAngleStartSpeed = 0; // The initial angular speed factor for the current spin.
+    let spinTime = 0; // Timestamp of the most recent animation frame.
+    let spinStartTime = 0; // Timestamp when the current spin animation began.
+    let spinTimeTotal = 0; // The total planned duration for the current spin animation.
+    let isSpinning = false; // Boolean flag indicating if the wheel is currently spinning.
+    let animationFrameId = null; // Stores the ID returned by requestAnimationFrame, used to cancel the animation.
 
     // --- Utility Functions ---
+    // Helper functions for common tasks like parsing input, showing messages, etc.
 
     // Helper function to parse BigInt from input, returns null on error/invalid
     function parseBetInput(inputElement) {
@@ -132,6 +147,12 @@
     }
 
     // --- Local Storage Functions ---
+    // Functions to save and load the game state to and from the browser's local storage.
+
+    /**
+     * Saves the current game state (balance, win rate, history, last bet) to local storage.
+     * Handles BigInt conversion for storage.
+     */
     function saveGameState() {
         try {
             // Get the current bet value from the input field for saving
@@ -155,13 +176,13 @@
 
 
             const gameState = {
-                balance: playerBalance.toString(),
-                winRate: parseInt(winRateSlider.value, 10), // Ensure radix 10
+                balance: playerBalance.toString(), // Convert BigInt to string for JSON storage
+                winRate: parseInt(winRateSlider.value, 10), // Ensure radix 10 for integer parsing
                 history: spinHistory.map(entry => ({
                     ...entry, // Keep result, color
-                    bet: entry.bet.toString(),
-                    outcome: entry.outcome.toString(),
-                    balanceAfter: entry.balanceAfter.toString()
+                    bet: entry.bet.toString(), // Convert BigInt to string
+                    outcome: entry.outcome.toString(), // Convert BigInt to string
+                    balanceAfter: entry.balanceAfter.toString() // Convert BigInt to string
                 })),
                 lastBet: betStringToSave // Save the validated bet amount string
             };
@@ -169,19 +190,25 @@
             // console.log("Game state saved (BigInt)."); // Less verbose logging
         } catch (error) {
             console.error("Error saving game state to localStorage:", error);
-            showMessage("Không thể lưu trạng thái trò chơi.");
+            showMessage("Không thể lưu trạng thái trò chơi."); // Show error message to user
         }
     }
 
+    /**
+     * Loads the game state from local storage when the page loads.
+     * Parses BigInt values and updates the UI accordingly.
+     */
     function loadGameState() {
-        let loadedBetAmount = DEFAULT_BET;
+        let loadedBetAmount = DEFAULT_BET; // Default bet amount if no state is loaded
         try {
             const savedStateJSON = localStorage.getItem(LOCAL_STORAGE_KEY);
             if (savedStateJSON) {
                 const savedState = JSON.parse(savedStateJSON);
 
+                // Load player balance, defaulting if not found
                 playerBalance = savedState.balance !== undefined ? BigInt(savedState.balance) : INITIAL_BALANCE;
 
+                // Load spin history, parsing BigInt values, defaulting if not found or invalid
                 spinHistory = Array.isArray(savedState.history)
                     ? savedState.history.map(entry => ({
                         ...entry,
@@ -191,8 +218,10 @@
                       }))
                     : [];
 
+                // Load win rate slider value, defaulting if not found
                 winRateSlider.value = savedState.winRate !== undefined ? savedState.winRate : DEFAULT_WIN_RATE;
 
+                // Load last bet amount, parsing BigInt, defaulting if not found or invalid
                 if (savedState.lastBet !== undefined) {
                     try {
                         loadedBetAmount = BigInt(savedState.lastBet);
@@ -203,7 +232,7 @@
                 }
                 // console.log("Game state loaded (BigInt).");
             } else {
-                // No saved state, use defaults
+                // No saved state found, initialize with default values
                 playerBalance = INITIAL_BALANCE;
                 winRateSlider.value = DEFAULT_WIN_RATE;
                 spinHistory = [];
@@ -212,6 +241,7 @@
             }
         } catch (error) {
             console.error("Error loading game state from localStorage:", error);
+            // If loading fails, reset to initial state and show an error message
             playerBalance = INITIAL_BALANCE;
             winRateSlider.value = DEFAULT_WIN_RATE;
             spinHistory = [];
@@ -222,29 +252,30 @@
         }
 
         // --- Initial UI Setup ---
-        updateBalanceDisplay();
-        updateWeightsAndRedraw(); // Updates segments, totalWeight, draws wheel
-        updateHistoryDisplay();
+        // Update the UI elements based on the loaded or default game state.
+        updateBalanceDisplay(); // Display the player's balance.
+        updateWeightsAndRedraw(); // Update segment weights based on slider and redraw the wheel.
+        updateHistoryDisplay(); // Display the spin history.
 
-        // Set initial bet amount, validating against loaded balance
+        // Set initial bet amount input value, validating against the current balance.
         let finalBetAmount = loadedBetAmount;
         if (playerBalance <= 0n) {
-            finalBetAmount = 0n;
+            finalBetAmount = 0n; // Bet is 0 if balance is zero or less
         } else {
             if (finalBetAmount < MIN_BET) {
-                finalBetAmount = MIN_BET;
+                finalBetAmount = MIN_BET; // Ensure bet is at least the minimum
             }
             if (finalBetAmount > playerBalance) {
                 finalBetAmount = playerBalance; // Cap bet at current balance
             }
         }
-        betAmountInput.value = finalBetAmount.toString();
+        betAmountInput.value = finalBetAmount.toString(); // Set the input field value
         currentBet = 0n; // Reset currentBet until a spin is initiated
 
         // Enable/disable controls based on loaded state
         updateControlsState();
 
-        // Clear result message and ensure message box is hidden
+        // Clear any previous result message and ensure the message box is hidden.
         resultDiv.textContent = '';
         resultDiv.style.color = ''; // Reset to default CSS color
         hideMessage();
@@ -252,6 +283,7 @@
     }
 
     // --- UI Update Functions ---
+    // Functions responsible for updating the visual elements of the game.
     function updateBalanceDisplay() {
         try {
             playerBalanceSpan.textContent = playerBalance.toLocaleString();
@@ -366,24 +398,32 @@
 
 
     // --- Reset Logic ---
+    // Function to reset the game state to its initial values.
+
+    /**
+     * Resets the game to its initial state, clearing local storage,
+     * resetting balance, history, and bet amount.
+     */
     function resetGame() {
-        if (isSpinning) return; // Don't reset while spinning
+        if (isSpinning) return; // Prevent reset if the wheel is spinning
 
         try {
+            // Remove the saved game state from local storage.
             localStorage.removeItem(LOCAL_STORAGE_KEY);
             // console.log("Cleared saved game state (BigInt).");
         } catch (error) {
             console.error("Error removing game state from localStorage:", error);
         }
 
+        // Reset game state variables to their initial values.
         playerBalance = INITIAL_BALANCE;
         spinHistory = [];
         currentBet = 0n; // Reset placed bet
 
-        // Keep current win rate slider value, but update segments/wheel
+        // Keep the current win rate slider value but update the segments and redraw the wheel.
         updateWeightsAndRedraw();
 
-        // Reset bet amount input to default or balance, whichever is smaller
+        // Reset the bet amount input field, defaulting to DEFAULT_BET or the current balance if smaller.
         let resetBetAmount = DEFAULT_BET;
         if (playerBalance <= 0n) { // Should be INITIAL_BALANCE > 0n here
             resetBetAmount = 0n;
@@ -392,20 +432,24 @@
         }
         betAmountInput.value = resetBetAmount.toString();
 
+        // Update the UI to reflect the reset state.
         updateBalanceDisplay();
         updateHistoryDisplay();
 
+        // Clear the result message and reset its color.
         resultDiv.textContent = '';
         resultDiv.style.color = ''; // Reset color
 
-        updateControlsState(); // Update button states
-        hideMessage(); // Ensure message box is hidden
-        isSpinning = false; // Ensure spinning state is false
+        // Update the state of the game controls (buttons, inputs).
+        updateControlsState();
+        hideMessage(); // Ensure the message box is hidden.
+        isSpinning = false; // Ensure spinning state is false.
 
         console.log("Game reset. Balance/History/Bet reset. Kept Win Rate.");
     }
 
     // --- Spin and Bet Logic ---
+    // Functions related to the wheel spinning mechanism and handling bets.
     function rotateWheel() {
         const now = performance.now(); // Use high-resolution timer
         // spinTime holds the timestamp of the *previous* frame
