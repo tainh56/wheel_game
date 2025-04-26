@@ -1,0 +1,307 @@
+/* Basic styles for the wheel game */
+body {
+    font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0f0f0;
+    margin: 0;
+}
+
+.container {
+    text-align: center;
+}
+
+#wheel {
+    width: 300px;
+    height: 300px;
+    border: 5px solid #ccc;
+    border-radius: 50%;
+    position: relative;
+    margin: 20px auto;
+    overflow: hidden;
+}
+
+#spin-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+/* CSS Variables for easier theming */
+:root {
+    --bg-color: #f0e8c0;
+    --text-color: #5a3a24;
+    --primary-accent: #8b5a2b;
+    --primary-accent-dark: #5a3a24;
+    --secondary-accent: #c0392b;
+    --secondary-accent-dark: #a03021;
+    --win-color: #2ecc71;
+    --lose-color: #e67e22;
+    --win-text-color: #27ae60;
+    --lose-text-color: #c0392b; /* Same as secondary accent */
+    --disabled-bg: #cccccc;
+    --disabled-text: #666666;
+    --disabled-border: #999999;
+    --font-family: 'Roboto', sans-serif;
+    --border-radius: 10px;
+    --button-padding: 15px 25px;
+    --control-border-color: var(--primary-accent);
+    --control-bg-color: rgba(139, 90, 43, 0.1);
+    --history-bg-color: rgba(139, 90, 43, 0.05);
+    --input-bg-color: #fffbf0;
+}
+
+body {
+    display: flex;
+    justify-content: flex-start; /* Align top */
+    align-items: center;
+    min-height: 100vh;
+    background-color: var(--bg-color);
+    font-family: var(--font-family);
+    color: var(--text-color);
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Main game area layout */
+.main-game {
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     margin-bottom: 20px; /* Space before history */
+}
+
+.game-container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+canvas {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 50%;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+
+.pointer {
+    position: absolute;
+    top: -10px; /* Position above the wheel */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 30px solid var(--secondary-accent); /* Use CSS var */
+    z-index: 10;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+button {
+    font-family: inherit;
+    padding: var(--button-padding);
+    font-size: 14px;
+    cursor: pointer;
+    background-color: var(--primary-accent);
+    color: var(--bg-color);
+    border: 4px solid var(--primary-accent-dark);
+    border-radius: var(--border-radius);
+    text-transform: uppercase;
+    transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.1s ease;
+    box-shadow: 0 5px var(--primary-accent-dark);
+    font-weight: bold;
+}
+button:hover {
+    background-color: #a07b4e; /* Slightly lighter brown */
+}
+button:active {
+    background-color: #7c4d21; /* Slightly darker brown */
+    box-shadow: 0 2px var(--primary-accent-dark);
+    transform: translateY(3px);
+}
+button:disabled {
+    background-color: var(--disabled-bg);
+    color: var(--disabled-text);
+    cursor: not-allowed;
+    box-shadow: 0 5px var(--disabled-border);
+    border-color: var(--disabled-border);
+    transform: none; /* Prevent movement when disabled */
+}
+
+#resetButton {
+     background-color: var(--secondary-accent);
+     box-shadow: 0 5px var(--secondary-accent-dark);
+     border-color: var(--secondary-accent-dark);
+}
+ #resetButton:hover {
+     background-color: #d65040; /* Slightly lighter red */
+ }
+  #resetButton:active {
+     background-color: var(--secondary-accent-dark);
+     box-shadow: 0 2px #7c251a; /* Darker red shadow */
+     transform: translateY(3px);
+ }
+ #resetButton:disabled { /* Ensure reset button disabled style matches */
+     background-color: var(--disabled-bg);
+     box-shadow: 0 5px var(--disabled-border);
+     border-color: var(--disabled-border);
+ }
+
+#result {
+    margin-top: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    min-height: 20px; /* Prevent layout shift */
+    color: var(--lose-text-color); /* Default color (loss) */
+}
+
+.controls, .betting-controls {
+    margin-top: 15px;
+    padding: 12px;
+    background-color: var(--control-bg-color);
+    border: 3px solid var(--control-border-color);
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    box-sizing: border-box; /* Include padding/border in width */
+}
+.controls label, .betting-controls label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+.controls input[type="range"] {
+    width: 75%;
+    cursor: pointer;
+    margin-bottom: 5px;
+    vertical-align: middle;
+}
+.controls span {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--secondary-accent); /* Use CSS var */
+    min-width: 35px;
+    display: inline-block;
+    text-align: right;
+    margin-left: 5px;
+    vertical-align: middle;
+}
+ .balance-info {
+     font-size: 16px;
+     margin-bottom: 10px;
+     color: #34495e; /* Dark blue-grey for balance label */
+ }
+ .balance-info span {
+     font-weight: bold;
+     color: var(--win-text-color); /* Green for balance amount */
+ }
+ .betting-controls input[type="number"] {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 8px;
+    border: 2px solid var(--control-border-color);
+    border-radius: 5px;
+    background-color: var(--input-bg-color);
+    color: var(--text-color);
+    width: 100px;
+    text-align: right;
+    margin-left: 10px;
+ }
+ /* Hide number input spinners */
+ .betting-controls input[type=number]::-webkit-inner-spin-button,
+ .betting-controls input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none; margin: 0;
+ }
+ .betting-controls input[type=number] {
+    -moz-appearance: textfield; /* Firefox */
+ }
+
+/* History Log Styling */
+.history-section {
+    margin-top: 25px;
+    width: 90%;
+    max-width: 450px;
+    background-color: var(--history-bg-color);
+    border: 3px solid var(--control-border-color);
+    border-radius: 8px;
+    padding: 15px;
+    box-sizing: border-box;
+}
+.history-section h2 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: var(--text-color);
+    border-bottom: 2px solid var(--control-border-color);
+    padding-bottom: 5px;
+}
+#historyLog {
+    list-style: none; padding: 0; margin: 0;
+    max-height: 150px; overflow-y: auto;
+    text-align: left;
+    font-size: 13px;
+    line-height: 1.6;
+}
+.history-entry { /* Style for each list item */
+    padding: 5px 0;
+    border-bottom: 1px dashed rgba(90, 58, 36, 0.3);
+}
+.history-entry:last-child { border-bottom: none; }
+
+/* Classes for win/loss text within history */
+.history-win { color: var(--win-text-color); font-weight: bold; }
+.history-loss { color: var(--lose-text-color); }
+
+/* Classes for result color (Green/Orange) within history */
+.history-entry strong.win-color { color: var(--win-color); }
+.history-entry strong.lose-color { color: var(--lose-color); }
+
+
+/* Message Box Styling */
+.message-box-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: none; /* Hidden by default */
+    opacity: 0; /* Start transparent */
+    justify-content: center; align-items: center; z-index: 1000;
+    transition: opacity 0.3s ease-in-out; /* Fade transition */
+}
+/* Class to show the message box */
+.message-box-overlay.visible {
+    display: flex;
+    opacity: 1;
+}
+.message-box {
+    background-color: var(--bg-color); padding: 30px; border-radius: 10px;
+    border: 5px solid var(--primary-accent-dark);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+    text-align: center; max-width: 80%;
+}
+.message-box p { margin-bottom: 20px; font-size: 16px; color: var(--text-color); }
+.message-box button {
+    /* Style similar to main buttons but maybe smaller */
+    font-family: inherit;
+    padding: 10px 20px; font-size: 14px;
+    cursor: pointer; background-color: var(--primary-accent); color: var(--bg-color);
+    border: 3px solid var(--primary-accent-dark); border-radius: 8px;
+    box-shadow: 0 4px var(--primary-accent-dark);
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.1s ease;
+}
+ .message-box button:active {
+     box-shadow: 0 2px var(--primary-accent-dark);
+     transform: translateY(2px);
+ }
