@@ -43,7 +43,8 @@ body {
     --disabled-bg: #cccccc;
     --disabled-text: #666666;
     --disabled-border: #999999;
-    --font-family: 'Roboto', sans-serif;
+    --font-family: 'Roboto', sans-serif; /* Keep Roboto */
+    --secondary-font-family: 'Open Sans', sans-serif; /* Add a secondary font */
     --border-radius: 10px;
     --button-padding: 15px 25px;
     --control-border-color: var(--primary-accent);
@@ -57,7 +58,12 @@ body {
     justify-content: flex-start; /* Align top */
     align-items: center;
     min-height: 100vh;
-    background-color: var(--bg-color);
+    background-color: var(--bg-color); /* Keep background color */
+    /* Add a subtle background pattern or texture */
+    background-image: linear-gradient(45deg, var(--bg-color) 25%, transparent 25%, transparent 75%, var(--bg-color) 75%, var(--bg-color)), linear-gradient(-45deg, var(--bg-color) 25%, transparent 25%, transparent 75%, var(--bg-color) 75%, var(--bg-color));
+    background-size: 20px 20px; /* Adjust size as needed */
+    background-position: 0 0, 10px 10px; /* Offset for pattern */
+
     font-family: var(--font-family);
     color: var(--text-color);
     flex-direction: column;
@@ -89,20 +95,23 @@ canvas {
     max-width: 100%;
     max-height: 100%;
     border-radius: 50%;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Increase shadow intensity */
+    border: 8px solid var(--primary-accent-dark); /* Add a border */
+    box-sizing: border-box; /* Include border in size */
 }
 
 .pointer {
     position: absolute;
-    top: -10px; /* Position above the wheel */
+    top: -15px; /* Move pointer slightly higher */
     left: 50%;
     transform: translateX(-50%);
     width: 0;
     height: 0;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    border-top: 30px solid var(--secondary-accent); /* Use CSS var */
+    border-left: 20px solid transparent; /* Make pointer wider */
+    border-right: 20px solid transparent; /* Make pointer wider */
+    border-top: 40px solid var(--secondary-accent); /* Make pointer taller */
     z-index: 10;
+    filter: drop-shadow(0 5px 5px rgba(0, 0, 0, 0.3)); /* Add shadow to pointer */
 }
 
 .action-buttons {
@@ -112,7 +121,7 @@ canvas {
 }
 
 button {
-    font-family: inherit;
+    font-family: var(--secondary-font-family); /* Use secondary font for buttons */
     padding: var(--button-padding);
     font-size: 14px;
     cursor: pointer;
@@ -171,13 +180,14 @@ button:disabled {
 
 .controls, .betting-controls {
     margin-top: 15px;
-    padding: 12px;
+    padding: 15px; /* Increase padding */
     background-color: var(--control-bg-color);
-    border: 3px solid var(--control-border-color);
-    border-radius: 8px;
-    width: 90%;
-    max-width: 400px;
+    border: 4px solid var(--control-border-color); /* Increase border thickness */
+    border-radius: 12px; /* Increase border radius */
+    width: 95%; /* Make controls slightly wider */
+    max-width: 450px; /* Increase max width */
     box-sizing: border-box; /* Include padding/border in width */
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
 }
 .controls label, .betting-controls label {
     display: block;
@@ -210,7 +220,7 @@ button:disabled {
      color: var(--win-text-color); /* Green for balance amount */
  }
  .betting-controls input[type="number"] {
-    font-family: inherit;
+    font-family: var(--secondary-font-family); /* Use secondary font for inputs */
     font-size: 14px;
     padding: 8px;
     border: 2px solid var(--control-border-color);
@@ -236,10 +246,11 @@ button:disabled {
     width: 90%;
     max-width: 450px;
     background-color: var(--history-bg-color);
-    border: 3px solid var(--control-border-color);
-    border-radius: 8px;
-    padding: 15px;
+    border: 4px solid var(--control-border-color); /* Increase border thickness */
+    border-radius: 12px; /* Increase border radius */
+    padding: 20px; /* Increase padding */
     box-sizing: border-box;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
 }
 .history-section h2 {
     font-size: 16px;
@@ -285,19 +296,32 @@ button:disabled {
     opacity: 1;
 }
 .message-box {
-    background-color: var(--bg-color); padding: 30px; border-radius: 10px;
-    border: 5px solid var(--primary-accent-dark);
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
-    text-align: center; max-width: 80%;
+    background-color: var(--bg-color);
+    padding: 30px;
+    border-radius: 15px; /* Increase border radius */
+    border: 6px solid var(--primary-accent-dark); /* Increase border thickness */
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.5); /* Increase shadow intensity */
+    text-align: center;
+    max-width: 80%;
+    position: relative; /* Needed for close button positioning */
 }
-.message-box p { margin-bottom: 20px; font-size: 16px; color: var(--text-color); }
+.message-box p {
+    margin-bottom: 20px;
+    font-size: 18px; /* Increase font size */
+    color: var(--text-color);
+    line-height: 1.5; /* Improve readability */
+}
 .message-box button {
     /* Style similar to main buttons but maybe smaller */
     font-family: inherit;
-    padding: 10px 20px; font-size: 14px;
-    cursor: pointer; background-color: var(--primary-accent); color: var(--bg-color);
-    border: 3px solid var(--primary-accent-dark); border-radius: 8px;
-    box-shadow: 0 4px var(--primary-accent-dark);
+    padding: 12px 25px; /* Increase padding */
+    font-size: 16px; /* Increase font size */
+    cursor: pointer;
+    background-color: var(--primary-accent);
+    color: var(--bg-color);
+    border: 4px solid var(--primary-accent-dark); /* Increase border thickness */
+    border-radius: 10px; /* Increase border radius */
+    box-shadow: 0 5px var(--primary-accent-dark); /* Adjust shadow */
     font-weight: bold;
     transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.1s ease;
 }
